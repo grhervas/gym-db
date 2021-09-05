@@ -25,10 +25,30 @@ VALUES (
     1,
     3 );
 
-INSERT INTO exercise (
-    exercise_desc)
-VALUES (
-    "bench press");
+INSERT INTO exercise (exercise_desc)
+VALUES 
+    ("press banca"),
+    ("dominadas"),
+    ("press militar"),
+    ("sentadilla"),
+    ("peso muerto"),
+    ("peso muerto rumano"),
+    ("hip thrust");
+
+INSERT INTO muscle (muscle_desc)
+VALUES 
+    ("pectoral"),
+    ("gemelo"),
+    ("cuádriceps"),
+    ("isquiotibiales"),
+    ("glúteo"),
+    ("bíceps"),
+    ("tríceps"),
+    ("antebrazo"),
+    ("trapecio"),
+    ("dorsal"),
+    ("deltoide"),
+    ("lumbar");
 
 INSERT INTO workout_set (
     workout_id,
@@ -44,10 +64,27 @@ VALUES (
     1,
     10,
     92.50,
-    8,
-    7 );
+    7,
+    8 );
 
 INSERT INTO log_workout(
     workout_id, date_workout, duration_min, intensity, comment_workout)
 VALUES (
     1, "2021-09-03", 90, 8.5, "Too fatigued");
+
+INSERT INTO log_set (
+    workout_set_id, log_workout_id, no_reps_done,
+    weight_done, rpe_done, comment_set )
+VALUES (
+    1,
+    1,
+    10,
+    90,
+    9,
+    "Harder than expected"
+);
+
+INSERT INTO historic_pr (
+    date_pr, exercise_id, no_reps_pr, weight_pr )
+VALUES (
+    "2021-11-22", 1, 3, 100 );
