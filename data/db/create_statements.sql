@@ -17,6 +17,7 @@ CREATE TABLE block (
 
 CREATE TABLE workout (
     workout_id INTEGER NOT NULL PRIMARY KEY,
+    workout_desc VARCHAR,
     block_id INTEGER NOT NULL REFERENCES block,
     week INTEGER CHECK (week > 0),
     day INTEGER CHECK (day > 0)
@@ -36,6 +37,7 @@ CREATE TABLE workout_set (
     perc_rm REAL CHECK (0 < perc_rm AND perc_rm <= 100),
     min_rpe INTEGER CHECK (0 <= min_rpe AND min_rpe <= 10),
     max_rpe INTEGER CHECK (0 <= max_rpe AND max_rpe <= 10),
+    rest_min REAL CHECK (rest_min >= 0),
     UNIQUE(workout_id, exercise_id, set_id) ON CONFLICT ABORT,
     CHECK ( min_rpe <= max_rpe 
             OR

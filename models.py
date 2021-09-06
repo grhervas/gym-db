@@ -22,7 +22,7 @@ class Program(Base):
     __table_args__ = (
         CheckConstraint("""date_start < date_end
                            OR
-                           (date_start IS NULL OR date_end IS NULL)""")
+                           (date_start IS NULL OR date_end IS NULL)"""),
     )
 
     program_id = Column(Integer, primary_key=True)
@@ -34,11 +34,11 @@ class Program(Base):
     blocks = relationship("Block", back_populates="program")
 
     def __repr__(self):
-        return f"""<Program(id={self.program_id},
-                            desc={self.program_desc},
-                            date_start={self.date_start},
-                            date_end={self.date_end},
-                            objective={self.objective})>"""
+        return (f"<Program(id={self.program_id}," +
+                f"desc={self.program_desc}," +
+                f"date_start={self.date_start}," +
+                f"date_end={self.date_end}," +
+                f"objective={self.objective})>")
 
 
 class Block(Base):
@@ -53,15 +53,16 @@ class Block(Base):
     workouts = relationship("Workout", back_populates="block")
 
     def __repr__(self):
-        return f"""<Block(id={self.block_id},
-                          desc={self.block_desc},
-                          program={self.program.program_desc})>"""
+        return (f"<Block(id={self.block_id}," +
+                f"desc={self.block_desc}," +
+                f"program={self.program.program_desc})>")
 
 
 class Workout(Base):
     __tablename__ = "workout"
 
     workout_id = Column(Integer, primary_key=True)
+    workout_desc = Column(String)
     block_id = Column(Integer, ForeignKey("block.block_id"),
                       nullable=False)
     week = Column(Integer, CheckConstraint("week > 0"))
@@ -73,11 +74,11 @@ class Workout(Base):
                                uselist=False)
 
     def __repr__(self):
-        return f"""<Workout(id={self.workout_id},
-                            program={self.block.program.program_desc},
-                            block={self.block.block_desc},
-                            week={self.week},
-                            day={self.day})>"""
+        return (f"<Workout(id={self.workout_id}," +
+                f"program={self.block.program.program_desc}," +
+                f"block={self.block.block_desc}," +
+                f"week={self.week}," +
+                f"day={self.day})>")
 
 
 class Exercise(Base):
@@ -96,8 +97,8 @@ class Exercise(Base):
     # muscles = relationship("Exercise_muscle", back_populates="exercise")
 
     def __repr__(self):
-        return f"""<Exercise(id={self.exercise_id},
-                             desc={self.exercise_desc})>"""
+        return (f"<Exercise(id={self.exercise_id}," +
+                f"desc={self.exercise_desc})>")
 
 
 # # Many-to-many association Exercises-Muscles via Association Object
@@ -127,8 +128,8 @@ class Muscle(Base):
     # exercises = relationship("Exercise_muscle", back_populates="muscle")
 
     def __repr__(self):
-        return f"""<Muscle(id={self.muscle_id},
-                           desc={self.muscle_desc})>"""
+        return (f"<Muscle(id={self.muscle_id}," +
+                f"desc={self.muscle_desc})>")
 
 
 class Workout_set(Base):
@@ -137,7 +138,7 @@ class Workout_set(Base):
         UniqueConstraint("workout_id", "exercise_id", "set_id"),
         CheckConstraint("""min_rpe <= max_rpe
                            OR
-                           (min_rpe IS NULL OR max_rpe IS NULL)""")
+                           (min_rpe IS NULL OR max_rpe IS NULL)"""),
     )
 
     workout_set_id = Column(Integer, primary_key=True)
@@ -153,6 +154,7 @@ class Workout_set(Base):
                      CheckConstraint("0 <= min_rpe AND min_rpe <= 10"))
     max_rpe = Column(Integer,
                      CheckConstraint("0 <= max_rpe AND max_rpe <= 10"))
+    rest_min = Column(Float, CheckConstraint("rest_min >= 0"))
 
     log_set = relationship("Log_set", back_populates="workout_set",
                            uselist=False)
@@ -160,19 +162,19 @@ class Workout_set(Base):
     exercise = relationship("Exercise", back_populates="workout_sets")
 
     def __repr__(self):
-        return f"""<Workout_set(id={self.workout_set_id},
-                                program={self.workout.block.program.program_desc},
-                                block={self.workout.block.block_desc},
-                                week={self.workout.week},
-                                day={self.workout.day}),
-                                exercise={self.exercise.exercise_desce},
-                                set_id={self.set_id}>"""
+        return (f"<Workout_set(id={self.workout_set_id}," +
+                f"program={self.workout.block.program.program_desc}," +
+                f"block={self.workout.block.block_desc}," +
+                f"week={self.workout.week}," +
+                f"day={self.workout.day})," +
+                f"exercise={self.exercise.exercise_desc}," +
+                f"set_id={self.set_id}>")
 
 
 class Log_workout(Base):
     __tablename__ = "log_workout"
     __table_args__ = (
-        CheckConstraint("date_workout <= date_reg")
+        CheckConstraint("date_workout <= date_reg"),
     )
 
     log_workout_id = Column(Integer, primary_key=True)
@@ -189,12 +191,12 @@ class Log_workout(Base):
     workout = relationship("Workout", back_populates="log_workout")
 
     def __repr__(self):
-        return f"""<Log_workout(id={self.log_workout_id},
-                                date={self.date_workout},
-                                program={self.workout.block.program.program_desc},
-                                block={self.workout.block.block_desc},
-                                week={self.workout.week},
-                                day={self.workout.day})>"""
+        return (f"<Log_workout(id={self.log_workout_id}," +
+                f"date={self.date_workout}," +
+                f"program={self.workout.block.program.program_desc}," +
+                f"block={self.workout.block.block_desc}," +
+                f"week={self.workout.week}," +
+                f"day={self.workout.day})>")
 
 
 class Log_set(Base):
@@ -215,20 +217,20 @@ class Log_set(Base):
     workout_set = relationship("Workout_set", back_populates="log_set")
 
     def __repr__(self):
-        return f"""<Log_set(id={self.log_set_id},
-                            date={self.log_workout.date_workout},
-                            program={self.log_workout.workout.block.program.program_desc},
-                            block={self.log_workout.workout.block.block_desc},
-                            week={self.log_workout.workout.week},
-                            day={self.log_workout.workout.day},
-                            exercise={self.workout_set.exercise.exercise_desc},
-                            set_id={self.workout_set.set_id})>"""
+        return (f"<Log_set(id={self.log_set_id}," +
+                f"date={self.log_workout.date_workout}," +
+                f"program={self.log_workout.workout.block.program.program_desc}," +
+                f"block={self.log_workout.workout.block.block_desc}," +
+                f"week={self.log_workout.workout.week}," +
+                f"day={self.log_workout.workout.day}," +
+                f"exercise={self.workout_set.exercise.exercise_desc}," +
+                f"set_id={self.workout_set.set_id})>")
 
 
 class Historic_pr(Base):
     __tablename__ = "historic_pr"
     __table_args__ = (
-        CheckConstraint("date_pr <= date_reg")
+        CheckConstraint("date_pr <= date_reg"),
     )
 
     pr_id = Column(Integer, primary_key=True)
@@ -244,8 +246,8 @@ class Historic_pr(Base):
     exercise = relationship("Exercise", back_populates="historic_prs")
 
     def __repr__(self):
-        return f"""<Historic_pr(id={self.pr_id},
-                                exercise={self.exercise.exercise_desc},
-                                date={self.date_pr},
-                                no_reps={self.no_reps_pr},
-                                weight={self.weight_pr})>"""
+        return (f"<Historic_pr(id={self.pr_id}," +
+                f"exercise={self.exercise.exercise_desc}," +
+                f"date={self.date_pr}," +
+                f"no_reps={self.no_reps_pr}," +
+                f"weight={self.weight_pr})>")
