@@ -19,8 +19,11 @@ CREATE TABLE workout (
     workout_id INTEGER NOT NULL PRIMARY KEY,
     workout_desc VARCHAR,
     block_id INTEGER NOT NULL REFERENCES block,
+    date_workout DATE,
     week INTEGER CHECK (week > 0),
-    day INTEGER CHECK (day > 0)
+    day INTEGER CHECK (day > 0),
+    UNIQUE(block_id, week, day) ON CONFLICT ABORT,
+    UNIQUE(block_id, date_workout) ON CONFLICT ABORT
 );
 
 CREATE TABLE exercise (
@@ -47,12 +50,12 @@ CREATE TABLE workout_set (
 CREATE TABLE log_workout (
     log_workout_id INTEGER NOT NULL PRIMARY KEY,
     workout_id INTEGER UNIQUE NOT NULL REFERENCES workout,
-    date_workout DATE,
+    date_workout_done DATE,
     duration_min REAL CHECK (duration_min > 0),
     intensity REAL CHECK (0 <= intensity AND intensity <= 10),
     comment_workout VARCHAR,
     date_reg DATE NOT NULL DEFAULT (DATE('now')),
-    CHECK ( date_workout <= date_reg )
+    CHECK ( date_workout_done <= date_reg )
 );
 
 CREATE TABLE log_set (

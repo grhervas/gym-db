@@ -60,11 +60,16 @@ class Block(Base):
 
 class Workout(Base):
     __tablename__ = "workout"
+    __table_args__ = (
+        UniqueConstraint("block_id", "week", "day"),
+        UniqueConstraint("block_id", "date_workout")
+    )
 
     workout_id = Column(Integer, primary_key=True)
     workout_desc = Column(String)
     block_id = Column(Integer, ForeignKey("block.block_id"),
                       nullable=False)
+    date_workout = Column(Date)
     week = Column(Integer, CheckConstraint("week > 0"))
     day = Column(Integer, CheckConstraint("day > 0"))
 
@@ -75,8 +80,10 @@ class Workout(Base):
 
     def __repr__(self):
         return (f"<Workout(id={self.workout_id}," +
+                f"name={self.workout_desc}," +
                 f"program={self.block.program.program_desc}," +
                 f"block={self.block.block_desc}," +
+                f"date={self.date_workout}," + 
                 f"week={self.week}," +
                 f"day={self.day})>")
 
@@ -174,13 +181,13 @@ class Workout_set(Base):
 class Log_workout(Base):
     __tablename__ = "log_workout"
     __table_args__ = (
-        CheckConstraint("date_workout <= date_reg"),
+        CheckConstraint("date_workout_done <= date_reg"),
     )
 
     log_workout_id = Column(Integer, primary_key=True)
     workout_id = Column(Integer, ForeignKey("workout.workout_id"),
                         unique=True, nullable=False)
-    date_workout = Column(Date)
+    date_workout_done = Column(Date)
     duration_min = Column(Float, CheckConstraint("duration_min > 0"))
     intensity = Column(Float,
                        CheckConstraint("0 <= intensity AND intensity <= 10"))
@@ -192,7 +199,7 @@ class Log_workout(Base):
 
     def __repr__(self):
         return (f"<Log_workout(id={self.log_workout_id}," +
-                f"date={self.date_workout}," +
+                f"date={self.date_workout_done}," +
                 f"program={self.workout.block.program.program_desc}," +
                 f"block={self.workout.block.block_desc}," +
                 f"week={self.workout.week}," +

@@ -5,8 +5,8 @@ INSERT INTO program (
     objective)
 VALUES (
     "PHAT v2 (abr'21')",
-    "01/04/2021",
-    "01/07/2021",
+    "2021-04-01",
+    "2021-07-01",
     "Hypertrophy (+3kg)");
 
 INSERT INTO block (
@@ -16,14 +16,10 @@ VALUES (
     "Volume_1",
     1 );
 
-INSERT INTO workout (
-    block_id,
-    week,
-    day )
+INSERT INTO workout ( 
+    workout_desc, block_id, date_workout, week, day )
 VALUES (
-    1,
-    1,
-    3 );
+    "Pierna", 1, "2021-04-09", 1, 3 );
 
 INSERT INTO exercise (exercise_desc)
 VALUES 
