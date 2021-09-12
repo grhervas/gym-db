@@ -183,6 +183,16 @@ def add_block(session, source_file=None, program: str = None):
     session.commit()
 
 
+def generate_program_excel():
+
+    pass
+
+
+def load_log_data():
+
+    pass
+
+
 def main():
     """Main entry point of the program"""
 
