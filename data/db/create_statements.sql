@@ -37,6 +37,7 @@ CREATE TABLE workout_set (
     exercise_id INTEGER NOT NULL REFERENCES exercise,
     set_id INTEGER NOT NULL CHECK (set_id > 0),
     no_reps INTEGER CHECK (no_reps > 0),
+    weight REAL CHECK (weight > 0),
     perc_rm REAL CHECK (0 < perc_rm AND perc_rm <= 100),
     min_rpe INTEGER CHECK (0 <= min_rpe AND min_rpe <= 10),
     max_rpe INTEGER CHECK (0 <= max_rpe AND max_rpe <= 10),

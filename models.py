@@ -83,7 +83,7 @@ class Workout(Base):
                 f"name={self.workout_desc}," +
                 f"program={self.block.program.program_desc}," +
                 f"block={self.block.block_desc}," +
-                f"date={self.date_workout}," + 
+                f"date={self.date_workout}," +
                 f"week={self.week}," +
                 f"day={self.day})>")
 
@@ -156,6 +156,7 @@ class Workout_set(Base):
     set_id = Column(Integer, CheckConstraint("set_id > 0"),
                     nullable=False)
     no_reps = Column(Integer, CheckConstraint("no_reps > 0"))
+    weight = Column(Float, CheckConstraint("weight > 0"))
     perc_rm = Column(Float, CheckConstraint("0 < perc_rm AND perc_rm <= 100"))
     min_rpe = Column(Integer,
                      CheckConstraint("0 <= min_rpe AND min_rpe <= 10"))
@@ -172,10 +173,11 @@ class Workout_set(Base):
         return (f"<Workout_set(id={self.workout_set_id}," +
                 f"program={self.workout.block.program.program_desc}," +
                 f"block={self.workout.block.block_desc}," +
+                f"date={self.workout.date_workout}," +
                 f"week={self.workout.week}," +
-                f"day={self.workout.day})," +
+                f"day={self.workout.day}," +
                 f"exercise={self.exercise.exercise_desc}," +
-                f"set_id={self.set_id}>")
+                f"set_id={self.set_id})>")
 
 
 class Log_workout(Base):
