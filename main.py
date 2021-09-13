@@ -1,7 +1,8 @@
 # from pathlib import Path
 
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, func
 from sqlalchemy.orm import sessionmaker
+from sqlalchemy.orm.exc import NoResultFound
 
 from models import (Program, Block, Workout,
                     Workout_set, Exercise, Muscle,
@@ -183,9 +184,61 @@ def add_block(session, source_file=None, program: str = None):
     session.commit()
 
 
-def generate_program_excel():
+def generate_program_excel(session, program_id: int,
+                           output_dir="/mnt/c/Users/gonza/OneDrive/Gym/routines_log/"):
+    """
+    Generates Excel file (.xlsx) with Program planning. Each program block
+    is a different sheet with all the corresponding workouts.
 
-    pass
+        Parameters:
+            session (SQLAlchemy.session object)
+            program_id (int): Program identifier integer from database
+            output_dir (str): Directory to store generated file
+    """
+    try:
+        program = session.query(Program).filter_by(program_id=program_id).one()
+    except NoResultFound:
+        raise KeyError(f"Program_id ({program_id}) doesn't exist!")
+
+    program_name = program.program_desc if program.program_desc else f"Program_{program.program_id}"
+
+    with pd.ExcelWriter(output_dir + program_name + ".xlsx", engine="xlsxwriter") as writer:
+        program_blocks = session.query(Block).filter_by(program_id=program_id).all()
+        for program_block in program_blocks:
+            block_name = program_block.block_desc
+            start_row = 0
+            for workout in program_block.workouts:
+                df_workout_header = pd.DataFrame([workout.date_workout, workout.workout_desc],
+                                                 index=["date", "desc"])
+                df_workout = pd.read_sql(
+                    session.query(Exercise.exercise_desc.label("Ejercicio"),
+                                  func.count(Workout_set.set_id).label("Series"),
+                                  Workout_set.no_reps.label("Repeticiones"),
+                                  Workout_set.weight.label("Peso (kg)"),
+                                  Workout_set.perc_rm.label("% 1RM"),
+                                  Workout_set.min_rpe.label("RPE mín."),
+                                  Workout_set.max_rpe.label("RPE máx."),
+                                  Workout_set.rest_min.label("Descanso (min)"))
+                    .group_by(Exercise.exercise_desc)
+                    .filter(Exercise.exercise_id == Workout_set.exercise_id,
+                            Workout_set.workout_id == workout.workout_id)
+                    .order_by(Workout_set.workout_set_id)
+                    .statement,
+                    session.bind)
+
+                # Add log fields (the No. Sets, No. Reps, Weight and RPE should be replaced
+                # if needed)
+                df_workout[["¿Hecho?", "Comentarios", "RPE total",
+                            "Duración (min)", "Comentario general"]] = None
+
+                df_workout_header.to_excel(writer, sheet_name=block_name,
+                                           startrow=start_row,
+                                           index=False, header=False)
+                start_row += df_workout_header.shape[0]
+                df_workout.to_excel(writer, sheet_name=block_name,
+                                    startrow=start_row,
+                                    index=False)
+                start_row += (df_workout.shape[0] + 2)
 
 
 def load_log_data():
