@@ -1,12 +1,11 @@
-# from pathlib import Path
-
 from sqlalchemy import create_engine, func
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.orm.exc import NoResultFound
 
+from pathlib import Path
+
 from models import (Program, Block, Workout,
-                    Workout_set, Exercise, Muscle,
-                    Log_workout, Log_set, Historic_pr)
+                    Workout_set, Exercise)
 
 import pandas as pd
 import numpy as np
@@ -184,7 +183,7 @@ def add_block(session, source_file=None, program: str = None):
     session.commit()
 
 
-def generate_program_excel(session, program_id: int,
+def generate_program_excel(session, program: int or str,
                            output_dir="/mnt/c/Users/gonza/OneDrive/Gym/routines_log/"):
     """
     Generates Excel file (.xlsx) with Program planning. Each program block
@@ -192,9 +191,18 @@ def generate_program_excel(session, program_id: int,
 
         Parameters:
             session (SQLAlchemy.session object)
-            program_id (int): Program identifier integer from database
+            program (int or str): Program identifier integer or description
+                                  from database
             output_dir (str): Directory to store generated file
     """
+    # If program description provided, get id
+    if isinstance(program, str):
+        program_id = (
+            session.query(Program.program_id)
+            .filter_by(program_desc=program)
+            .scalar()
+        )
+
     try:
         program = session.query(Program).filter_by(program_id=program_id).one()
     except NoResultFound:
@@ -202,7 +210,11 @@ def generate_program_excel(session, program_id: int,
 
     program_name = program.program_desc if program.program_desc else f"Program_{program.program_id}"
 
-    with pd.ExcelWriter(output_dir + program_name + ".xlsx", engine="xlsxwriter") as writer:
+    file = output_dir + program_name + ".xlsx"
+    if Path(file).is_file():
+        raise FileExistsError(f"{file.name} already exists in {file.parent}!")
+
+    with pd.ExcelWriter(file, engine="xlsxwriter") as writer:
         program_blocks = session.query(Block).filter_by(program_id=program_id).all()
         for program_block in program_blocks:
             block_name = program_block.block_desc
@@ -248,18 +260,24 @@ def load_log_data():
 
 def main():
     """Main entry point of the program"""
-
+    
+    MACRO_NAME = "Macro Pisano"
     # Connect to the database using SQLAlchemy
     # sqlite_filepath = Path("./../gym_database.db").resolve()
     engine = create_engine(f"sqlite:///data/db/gym_database.db")
     Session = sessionmaker(bind=engine)
     session = Session()
 
-    add_block(session, "data/Micro0 Gonzalo septiembre2021.html")
+    # Add blocks (html files) from "data/" folder
+    html_files = [x for x in Path("data/").glob("*.html") if x.is_file()]
+    for file in html_files:
+        add_block(session, file, MACRO_NAME)
 
-    query = session.query(Block).all()
-    for row in query:
-        print(row)
+    generate_program_excel(session, MACRO_NAME)
+
+    # query = session.query(Block).all()
+    # for row in query:
+    #     print(row)
 
 
 if __name__ == "__main__":
