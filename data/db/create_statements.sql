@@ -42,7 +42,7 @@ CREATE TABLE workout_set (
     min_rpe INTEGER CHECK (0 <= min_rpe AND min_rpe <= 10),
     max_rpe INTEGER CHECK (0 <= max_rpe AND max_rpe <= 10),
     rest_min REAL CHECK (rest_min >= 0),
-    UNIQUE(workout_id, exercise_id, set_id) ON CONFLICT ABORT,
+    -- UNIQUE(workout_id, exercise_id, set_id) ON CONFLICT ABORT,
     CHECK ( min_rpe <= max_rpe 
             OR
             (min_rpe IS NULL OR max_rpe IS NULL) )

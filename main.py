@@ -1,3 +1,4 @@
+
 from sqlalchemy import create_engine, func
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.orm.exc import NoResultFound
@@ -7,6 +8,7 @@ from pathlib import Path
 from models import (Program, Block, Workout,
                     Workout_set, Exercise)
 
+from openpyxl import load_workbook
 import pandas as pd
 import numpy as np
 from bs4 import BeautifulSoup
@@ -84,12 +86,12 @@ def curate_exercises_data(exercises: list, col_names: list):
     # Lowercase exercise names
     df_exercises.iloc[:, 0] = df_exercises.iloc[:, 0].str.lower()
     # Convert to numbers
-    df_exercises.iloc[:, 1] = df_exercises.iloc[:, 1].str.extract(r"(\d+)").astype("int")
-    df_exercises.iloc[:, 2] = df_exercises.iloc[:, 2].str.extract(r"(\d+)").astype("float")
-    df_exercises.iloc[:, 3] = df_exercises.iloc[:, 3].str.extract(r"(\d+)").astype("float")
-    df_exercises.iloc[:, 4] = df_exercises.iloc[:, 4].str.extract(r"(\d+)").astype("int")
-    df_exercises.iloc[:, 5] = df_exercises.iloc[:, 5].str.extract(r"(\d+)").astype("int")
-    df_exercises.iloc[:, 6] = df_exercises.iloc[:, 6].str.extract(r"(\d+)").astype("float")
+    df_exercises.iloc[:, 1] = df_exercises.iloc[:, 1].str.extract(r"(\d+)").astype(int).values
+    df_exercises.iloc[:, 2] = df_exercises.iloc[:, 2].str.extract(r"(\d+)").astype(float).values
+    df_exercises.iloc[:, 3] = df_exercises.iloc[:, 3].str.extract(r"(\d+)").astype(float).values
+    df_exercises.iloc[:, 4] = df_exercises.iloc[:, 4].str.extract(r"(\d+)").astype(int).values
+    df_exercises.iloc[:, 5] = df_exercises.iloc[:, 5].str.extract(r"(\d+)").astype(int).values
+    df_exercises.iloc[:, 6] = df_exercises.iloc[:, 6].str.extract(r"(\d+)").astype(float).values
     # In "Cargas (%)" and "Descanso (min)" change 0 --> NULL
     df_exercises.iloc[:, 2] = df_exercises.iloc[:, 2].replace(0.0, np.nan)
     df_exercises.iloc[:, 6] = df_exercises.iloc[:, 6].replace(0.0, np.nan)
@@ -211,46 +213,54 @@ def generate_program_excel(session, program: int or str,
     program_name = program.program_desc if program.program_desc else f"Program_{program.program_id}"
 
     file = output_dir + program_name + ".xlsx"
+    
     if Path(file).is_file():
-        raise FileExistsError(f"{file.name} already exists in {file.parent}!")
+        # raise FileExistsError(f"{file.name} already exists in {file.parent}!")
+        book = load_workbook(file)
+    else:
+        book = None
 
-    with pd.ExcelWriter(file, engine="xlsxwriter") as writer:
+    with pd.ExcelWriter(file, engine="openpyxl") as writer:
         program_blocks = session.query(Block).filter_by(program_id=program_id).all()
         for program_block in program_blocks:
             block_name = program_block.block_desc
-            start_row = 0
-            for workout in program_block.workouts:
-                df_workout_header = pd.DataFrame([workout.date_workout, workout.workout_desc],
-                                                 index=["date", "desc"])
-                df_workout = pd.read_sql(
-                    session.query(Exercise.exercise_desc.label("Ejercicio"),
-                                  func.count(Workout_set.set_id).label("Series"),
-                                  Workout_set.no_reps.label("Repeticiones"),
-                                  Workout_set.weight.label("Peso (kg)"),
-                                  Workout_set.perc_rm.label("% 1RM"),
-                                  Workout_set.min_rpe.label("RPE mín."),
-                                  Workout_set.max_rpe.label("RPE máx."),
-                                  Workout_set.rest_min.label("Descanso (min)"))
-                    .group_by(Exercise.exercise_desc)
-                    .filter(Exercise.exercise_id == Workout_set.exercise_id,
-                            Workout_set.workout_id == workout.workout_id)
-                    .order_by(Workout_set.workout_set_id)
-                    .statement,
-                    session.bind)
+            # Load existing excel file into current if exists...
+            if book:
+                writer.book = book
+            if block_name not in writer.book.sheetnames:
+                start_row = 0
+                for workout in program_block.workouts:
+                    df_workout_header = pd.DataFrame([workout.date_workout, workout.workout_desc],
+                                                    index=["date", "desc"])
+                    df_workout = pd.read_sql(
+                        session.query(Exercise.exercise_desc.label("Ejercicio"),
+                                    func.count(Workout_set.set_id).label("Series"),
+                                    Workout_set.no_reps.label("Repeticiones"),
+                                    Workout_set.weight.label("Peso (kg)"),
+                                    Workout_set.perc_rm.label("% 1RM"),
+                                    Workout_set.min_rpe.label("RPE mín."),
+                                    Workout_set.max_rpe.label("RPE máx."),
+                                    Workout_set.rest_min.label("Descanso (min)"))
+                        .group_by(Exercise.exercise_desc)
+                        .filter(Exercise.exercise_id == Workout_set.exercise_id,
+                                Workout_set.workout_id == workout.workout_id)
+                        .order_by(Workout_set.workout_set_id)
+                        .statement,
+                        session.bind)
 
-                # Add log fields (the No. Sets, No. Reps, Weight and RPE should be replaced
-                # if needed)
-                df_workout[["¿Hecho?", "Comentarios", "RPE total",
-                            "Duración (min)", "Comentario general"]] = None
+                    # Add log fields (the No. Sets, No. Reps, Weight and RPE should be replaced
+                    # if needed)
+                    df_workout[["¿Hecho?", "Comentarios", "RPE total",
+                                "Duración (min)", "Comentario general"]] = None
 
-                df_workout_header.to_excel(writer, sheet_name=block_name,
-                                           startrow=start_row,
-                                           index=False, header=False)
-                start_row += df_workout_header.shape[0]
-                df_workout.to_excel(writer, sheet_name=block_name,
-                                    startrow=start_row,
-                                    index=False)
-                start_row += (df_workout.shape[0] + 2)
+                    df_workout_header.to_excel(writer, sheet_name=block_name,
+                                            startrow=start_row,
+                                            index=False, header=False)
+                    start_row += df_workout_header.shape[0]
+                    df_workout.to_excel(writer, sheet_name=block_name,
+                                        startrow=start_row,
+                                        index=False)
+                    start_row += (df_workout.shape[0] + 2)
 
 
 def load_log_data():
@@ -273,7 +283,8 @@ def main():
     for file in html_files:
         add_block(session, file, MACRO_NAME)
 
-    generate_program_excel(session, MACRO_NAME)
+    generate_program_excel(session, MACRO_NAME,
+                           output_dir="/mnt/d/OneDrive/Gym/routines_log/")
 
     # query = session.query(Block).all()
     # for row in query:

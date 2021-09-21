@@ -142,7 +142,7 @@ class Muscle(Base):
 class Workout_set(Base):
     __tablename__ = "workout_set"
     __table_args__ = (
-        UniqueConstraint("workout_id", "exercise_id", "set_id"),
+        # UniqueConstraint("workout_id", "exercise_id", "set_id"),
         CheckConstraint("""min_rpe <= max_rpe
                            OR
                            (min_rpe IS NULL OR max_rpe IS NULL)"""),
