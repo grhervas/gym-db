@@ -25,8 +25,6 @@ def get_data_from_html(file):
         Returns:
             micro_dict (dict): dict containing same info organised
     """
-    # "data/Micro0 Gonzalo septiembre2021.html"
-
     with open(file) as html_file:
         soup = BeautifulSoup(html_file, "html.parser")
 
@@ -213,7 +211,7 @@ def generate_program_excel(session, program: int or str,
     program_name = program.program_desc if program.program_desc else f"Program_{program.program_id}"
 
     file = output_dir + program_name + ".xlsx"
-    
+
     if Path(file).is_file():
         # raise FileExistsError(f"{file.name} already exists in {file.parent}!")
         book = load_workbook(file)
@@ -230,18 +228,21 @@ def generate_program_excel(session, program: int or str,
             if block_name not in writer.book.sheetnames:
                 start_row = 0
                 for workout in program_block.workouts:
-                    df_workout_header = pd.DataFrame([workout.date_workout, workout.workout_desc],
-                                                    index=["date", "desc"])
+                    df_workout_header = pd.DataFrame([workout.date_workout, workout.workout_desc,
+                                                      None, None, None],
+                                                     index=["Fecha", "Desc", "Duración (min)",
+                                                            "RPE general", "Comentario general"])
                     df_workout = pd.read_sql(
                         session.query(Exercise.exercise_desc.label("Ejercicio"),
-                                    func.count(Workout_set.set_id).label("Series"),
-                                    Workout_set.no_reps.label("Repeticiones"),
-                                    Workout_set.weight.label("Peso (kg)"),
-                                    Workout_set.perc_rm.label("% 1RM"),
-                                    Workout_set.min_rpe.label("RPE mín."),
-                                    Workout_set.max_rpe.label("RPE máx."),
-                                    Workout_set.rest_min.label("Descanso (min)"))
-                        .group_by(Exercise.exercise_desc)
+                                      func.count(Workout_set.set_id).label("Series"),
+                                      Workout_set.no_reps.label("Repeticiones"),
+                                      Workout_set.weight.label("Peso (kg)"),
+                                      Workout_set.perc_rm.label("% 1RM"),
+                                      Workout_set.min_rpe.label("RPE mín."),
+                                      Workout_set.max_rpe.label("RPE máx."),
+                                      Workout_set.rest_min.label("Descanso (min)"))
+                        .group_by(Exercise.exercise_desc,
+                                  Workout_set.weight)
                         .filter(Exercise.exercise_id == Workout_set.exercise_id,
                                 Workout_set.workout_id == workout.workout_id)
                         .order_by(Workout_set.workout_set_id)
@@ -250,12 +251,11 @@ def generate_program_excel(session, program: int or str,
 
                     # Add log fields (the No. Sets, No. Reps, Weight and RPE should be replaced
                     # if needed)
-                    df_workout[["¿Hecho?", "Comentarios", "RPE total",
-                                "Duración (min)", "Comentario general"]] = None
+                    df_workout[["¿Hecho?", "RPE", "Comentarios"]] = None
 
                     df_workout_header.to_excel(writer, sheet_name=block_name,
-                                            startrow=start_row,
-                                            index=False, header=False)
+                                               startrow=start_row,
+                                               index=True, header=False)
                     start_row += df_workout_header.shape[0]
                     df_workout.to_excel(writer, sheet_name=block_name,
                                         startrow=start_row,
@@ -270,7 +270,7 @@ def load_log_data():
 
 def main():
     """Main entry point of the program"""
-    
+
     MACRO_NAME = "Macro Pisano"
     # Connect to the database using SQLAlchemy
     # sqlite_filepath = Path("./../gym_database.db").resolve()
@@ -284,7 +284,7 @@ def main():
         add_block(session, file, MACRO_NAME)
 
     generate_program_excel(session, MACRO_NAME,
-                           output_dir="/mnt/d/OneDrive/Gym/routines_log/")
+                           output_dir="/mnt/c/Users/gonza/OneDrive/Gym/routines_log/")
 
     # query = session.query(Block).all()
     # for row in query:
