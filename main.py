@@ -1,5 +1,4 @@
-
-from sqlalchemy import create_engine, func
+from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.orm.exc import NoResultFound
 
@@ -233,18 +232,17 @@ def generate_program_excel(session, program: int or str,
                                                      index=["Fecha", "Desc", "Duración (min)",
                                                             "RPE general", "Comentario general"])
                     df_workout = pd.read_sql(
-                        session.query(Exercise.exercise_desc.label("Ejercicio"),
-                                      func.count(Workout_set.set_id).label("Series"),
+                        session.query(Workout_set.workout_set_id.label("ID"),
+                                      Exercise.exercise_desc.label("Ejercicio"),
+                                      Workout_set.set_id.label("Serie"),
                                       Workout_set.no_reps.label("Repeticiones"),
                                       Workout_set.weight.label("Peso (kg)"),
                                       Workout_set.perc_rm.label("% 1RM"),
                                       Workout_set.min_rpe.label("RPE mín."),
                                       Workout_set.max_rpe.label("RPE máx."),
                                       Workout_set.rest_min.label("Descanso (min)"))
-                        .group_by(Exercise.exercise_desc,
-                                  Workout_set.weight)
-                        .filter(Exercise.exercise_id == Workout_set.exercise_id,
-                                Workout_set.workout_id == workout.workout_id)
+                        .join(Exercise.workout_sets)
+                        .filter(Workout_set.workout_id == 14)
                         .order_by(Workout_set.workout_set_id)
                         .statement,
                         session.bind)
