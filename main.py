@@ -4,8 +4,8 @@ from sqlalchemy.orm.exc import NoResultFound
 
 from pathlib import Path
 
-from models import (Program, Block, Workout,
-                    Workout_set, Exercise)
+from models import (Program, Block, Workout, Workout_set, 
+                    Exercise, Log_workout, Log_set)
 
 from openpyxl import load_workbook
 import pandas as pd
@@ -32,7 +32,7 @@ def get_data_from_html(file):
         for session in sessions:
             session_dict = {}
 
-            workout_desc = session.find("div", class_="titulo").text.lower()
+            workout_desc = session.find("div", class_="titulo").text.lower().strip()
             session_dict["workout_desc"] = workout_desc
 
             day = int(session.find("div", id="dia").text)
@@ -55,7 +55,7 @@ def get_data_from_html(file):
 
             sessions_list.append(session_dict)
 
-        block_name = soup.find(id="microciclo").text
+        block_name = soup.find(id="microciclo").text.strip()
         micro_dict = {block_name: sessions_list}
 
     return micro_dict
@@ -89,7 +89,8 @@ def curate_exercises_data(exercises: list, col_names: list):
     df_exercises.iloc[:, 4] = df_exercises.iloc[:, 4].str.extract(r"(\d+)").astype(int).values
     df_exercises.iloc[:, 5] = df_exercises.iloc[:, 5].str.extract(r"(\d+)").astype(int).values
     df_exercises.iloc[:, 6] = df_exercises.iloc[:, 6].str.extract(r"(\d+)").astype(float).values
-    # In "Cargas (%)" and "Descanso (min)" change 0 --> NULL
+    # In "Peso (kg)", "Cargas (%)" and "Descanso (min)" change 0 --> NULL
+    df_exercises.iloc[:, 1] = df_exercises.iloc[:, 2].replace(0, np.nan)
     df_exercises.iloc[:, 2] = df_exercises.iloc[:, 2].replace(0.0, np.nan)
     df_exercises.iloc[:, 6] = df_exercises.iloc[:, 6].replace(0.0, np.nan)
 
@@ -201,7 +202,11 @@ def generate_program_excel(session, program: int or str,
             .filter_by(program_desc=program)
             .scalar()
         )
+    # If numeric or otherwise
+    else:
+        program_id = program
 
+    # To check if valid id
     try:
         program = session.query(Program).filter_by(program_id=program_id).one()
     except NoResultFound:
@@ -229,7 +234,7 @@ def generate_program_excel(session, program: int or str,
                 for workout in program_block.workouts:
                     df_workout_header = pd.DataFrame([workout.date_workout, workout.workout_desc,
                                                       None, None, None],
-                                                     index=["Fecha", "Desc", "Duración (min)",
+                                                     index=["Fecha", "Descripción", "Duración (min)",
                                                             "RPE general", "Comentario general"])
                     df_workout = pd.read_sql(
                         session.query(Workout_set.workout_set_id.label("ID"),
@@ -242,7 +247,7 @@ def generate_program_excel(session, program: int or str,
                                       Workout_set.max_rpe.label("RPE máx."),
                                       Workout_set.rest_min.label("Descanso (min)"))
                         .join(Exercise.workout_sets)
-                        .filter(Workout_set.workout_id == 14)
+                        .filter(Workout_set.workout_id == workout.workout_id)
                         .order_by(Workout_set.workout_set_id)
                         .statement,
                         session.bind)
@@ -261,15 +266,102 @@ def generate_program_excel(session, program: int or str,
                     start_row += (df_workout.shape[0] + 2)
 
 
-def load_log_data():
+def load_log_data(session, log_file):
+    """
+    Load log data from Excel file (containing whole program) into db.
 
-    pass
+        Parameters:
+            session (SQLAlchemy.session object)
+            log_file (str or path): the Excel file that contains the info
+    """
+
+    # 1st. Get log file name to assign to correct Program
+    program_desc = Path(log_file).stem
+
+    if not session.query(Program).filter(Program.program_desc == program_desc).one_or_none():
+        raise KeyError(f"No record for {program_desc}!")
+
+    # 2nd. Iterate through blocks
+    for block_desc, df_block in pd.read_excel(log_file, sheet_name=None, header=None).items():
+
+        # Now we separate between header and body info (to log_workout and log_set, respectively)
+        idx = df_block.index[df_block.isna().all(axis=1)].tolist()
+        # We add the -1 to then add 1 in the loop and avoid including empty rows
+        idx_mod = [-1] + idx + [len(df_block)]
+
+        # Iterate through workouts
+        for i in range(len(idx_mod)-1):
+            df_wod = df_block.iloc[idx_mod[i]+1:idx_mod[i+1]]
+
+            # Separate header (log_workout info)...
+            df_wod_header = (df_wod.loc[df_wod.iloc[:, 2:].isna().all(axis=1)]
+                                   .dropna(axis=1, how="all")
+                                   .set_index(0).squeeze())
+            # Get workout_id from Block and Program names and the order of workout in excel file
+            workout_id = (session.query(Workout)
+                                 .join(Block).join(Program)
+                                 .filter(Block.block_desc == block_desc,
+                                         Program.program_desc == program_desc)
+                                 .order_by(Workout.workout_id)
+                                 .all()[i].workout_id)
+
+            # If log exists for workout_id, update the info
+            log_workout = (session.query(Log_workout)
+                                  .filter(Log_workout.workout_id == workout_id)
+                                  .one_or_none())
+            if log_workout:
+                log_workout.date_workout_done = df_wod_header["Fecha"]
+                log_workout.duration_min = df_wod_header["Duración (min)"]
+                log_workout.intensity = df_wod_header["RPE general"]
+                log_workout.comment_workout = df_wod_header["Comentario general"]
+                # log_workout.date_reg =  
+            # If not, insert the info
+            else:
+                log_workout = Log_workout(workout_id=workout_id, 
+                                          date_workout_done=df_wod_header["Fecha"],
+                                          duration_min=df_wod_header["Duración (min)"],
+                                          intensity=df_wod_header["RPE general"],
+                                          comment_workout=df_wod_header["Comentario general"])
+                session.add(log_workout)
+
+            # ... from body (log_set info)
+            df_wod_exer = df_wod.loc[df_wod.iloc[:, 2:].notna().any(axis=1)]
+            df_wod_exer.columns = df_wod_exer.iloc[0]
+            df_wod_exer = df_wod_exer.iloc[1:]
+            df_exer_done = df_wod_exer.loc[df_wod_exer[["¿Hecho?", "RPE"]].notnull().any(axis=1)]
+
+            # Iterate through sets
+            for _, row in df_exer_done.iterrows():
+                # If log exists for wod_set_id, update info
+                log_set = (session.query(Log_set)
+                                  .filter(Log_set.workout_set_id == row["ID"])
+                                  .one_or_none())
+                if log_set:
+                    log_set.log_workout_id = log_workout.log_workout_id
+                    log_set.no_reps_done = row["Repeticiones"]
+                    log_set.weight_done = row["Peso (kg)"]
+                    log_set.rpe_done = row["RPE"]
+                    log_set.comment_set = row["Comentarios"]
+
+                # If not, insert info
+                else:
+                    log_set = Log_set(workout_set_id=row["ID"],
+                                      log_workout_id=log_workout.log_workout_id,
+                                      no_reps_done=row["Repeticiones"],
+                                      weight_done=row["Peso (kg)"],
+                                      rpe_done=row["RPE"],
+                                      comment_set=row["Comentarios"])
+                    session.add(log_set)
+
+    session.commit()
 
 
 def main():
     """Main entry point of the program"""
 
     MACRO_NAME = "Macro Pisano"
+    LOGS_DIR = "/mnt/c/Users/gonza/OneDrive/Gym/routines_log/"
+
     # Connect to the database using SQLAlchemy
     # sqlite_filepath = Path("./../gym_database.db").resolve()
     engine = create_engine(f"sqlite:///data/db/gym_database.db")
@@ -281,12 +373,11 @@ def main():
     for file in html_files:
         add_block(session, file, MACRO_NAME)
 
-    generate_program_excel(session, MACRO_NAME,
-                           output_dir="/mnt/c/Users/gonza/OneDrive/Gym/routines_log/")
+    # Create excel for macrocycle recording
+    generate_program_excel(session, MACRO_NAME, LOGS_DIR)
 
-    # query = session.query(Block).all()
-    # for row in query:
-    #     print(row)
+    # # Load excel records into db
+    # load_log_data(session, LOGS_DIR + MACRO_NAME + ".xlsx")
 
 
 if __name__ == "__main__":

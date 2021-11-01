@@ -2,6 +2,7 @@ from sqlalchemy import (Column, Integer, Float, Date, String,
                         ForeignKey, Table, UniqueConstraint, CheckConstraint)
 from sqlalchemy.orm import relationship
 from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.sql.functions import now
 
 
 Base = declarative_base()
@@ -155,8 +156,8 @@ class Workout_set(Base):
                          nullable=False)
     set_id = Column(Integer, CheckConstraint("set_id > 0"),
                     nullable=False)
-    no_reps = Column(Integer, CheckConstraint("no_reps > 0"))
-    weight = Column(Float, CheckConstraint("weight > 0"))
+    no_reps = Column(Integer, CheckConstraint("no_reps >= 0"))
+    weight = Column(Float, CheckConstraint("weight >= 0"))
     perc_rm = Column(Float, CheckConstraint("0 < perc_rm AND perc_rm <= 100"))
     min_rpe = Column(Integer,
                      CheckConstraint("0 <= min_rpe AND min_rpe <= 10"))
@@ -194,7 +195,8 @@ class Log_workout(Base):
     intensity = Column(Float,
                        CheckConstraint("0 <= intensity AND intensity <= 10"))
     comment_workout = Column(String)
-    date_reg = Column(Date, nullable=False)
+    date_reg = Column(Date, nullable=False,
+                      server_default=now(), server_onupdate=now())
 
     log_sets = relationship("Log_set", back_populates="log_workout")
     workout = relationship("Workout", back_populates="log_workout")
@@ -217,7 +219,7 @@ class Log_set(Base):
     log_workout_id = Column(Integer, ForeignKey("log_workout.log_workout_id"),
                             nullable=False)
     no_reps_done = Column(Integer, CheckConstraint("no_reps_done >= 0"))
-    weight_done = Column(Float, CheckConstraint("weight_done > 0"))
+    weight_done = Column(Float, CheckConstraint("weight_done >= 0"))
     rpe_done = Column(Integer,
                       CheckConstraint("0 <= rpe_done AND rpe_done <= 10"))
     comment_set = Column(String)
@@ -227,7 +229,7 @@ class Log_set(Base):
 
     def __repr__(self):
         return (f"<Log_set(id={self.log_set_id}," +
-                f"date={self.log_workout.date_workout}," +
+                f"date={self.log_workout.date_workout_done}," +
                 f"program={self.log_workout.workout.block.program.program_desc}," +
                 f"block={self.log_workout.workout.block.block_desc}," +
                 f"week={self.log_workout.workout.week}," +
@@ -250,7 +252,8 @@ class Historic_pr(Base):
                         nullable=False)
     weight_pr = Column(Float, CheckConstraint("weight_pr > 0"),
                        nullable=False)
-    date_reg = Column(Date, nullable=False)
+    date_reg = Column(Date, nullable=False,
+                      server_default=now(), server_onupdate=now())
 
     exercise = relationship("Exercise", back_populates="historic_prs")
 

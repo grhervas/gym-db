@@ -36,8 +36,8 @@ CREATE TABLE workout_set (
     workout_id INTEGER NOT NULL REFERENCES workout,
     exercise_id INTEGER NOT NULL REFERENCES exercise,
     set_id INTEGER NOT NULL CHECK (set_id > 0),
-    no_reps INTEGER CHECK (no_reps > 0),
-    weight REAL CHECK (weight > 0),
+    no_reps INTEGER CHECK (no_reps >= 0),
+    weight REAL CHECK (weight >= 0),
     perc_rm REAL CHECK (0 < perc_rm AND perc_rm <= 100),
     min_rpe INTEGER CHECK (0 <= min_rpe AND min_rpe <= 10),
     max_rpe INTEGER CHECK (0 <= max_rpe AND max_rpe <= 10),
@@ -64,7 +64,7 @@ CREATE TABLE log_set (
     workout_set_id INTEGER UNIQUE NOT NULL REFERENCES workout_set,
     log_workout_id INTEGER NOT NULL REFERENCES log_workout,
     no_reps_done INTEGER CHECK (no_reps_done >= 0),
-    weight_done REAL CHECK (weight_done > 0),
+    weight_done REAL CHECK (weight_done >= 0),
     rpe_done INTEGER CHECK (0 <= rpe_done AND rpe_done <= 10),
     comment_set VARCHAR
 );

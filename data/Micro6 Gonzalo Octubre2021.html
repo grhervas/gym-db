@@ -1,0 +1,1141 @@
+<!DOCTYPE html>
+
+<!DOCTYPE html>
+
+<html lang="es">
+<head>
+	<meta charset="UTF-8">
+	<meta name="author" content="Iván Martínez Alba"> 
+	<meta name="description" content="App programa de ejercicios"> 
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<!--<meta HTTP-EQUIV="Refresh" CONTENT="5; url=google.es"> -->
+	<title>Planificacion Pisano</title>	
+	<link href='' rel='shortcut icon' type='image/png'/>
+	<script src='http://ajax.googleapis.com/ajax/libs/jquery/1.8/jquery.min.js' type='text/javascript'/>
+	
+	<script src="http://code.jquery.com/jquery-latest.min.js" type="text/javascript"></script>
+	
+	
+
+	<style type="text/css">
+		*{
+		margin:0px;
+		padding:0px;
+		}
+		body{
+			font-family: 'Open Sans', sans-serif;
+			line-height: 0px;
+		}
+		body div{
+			line-height: 18px;
+			width: 100%;
+			float: left;
+		}
+		#logo {
+			background-color: #fff;
+			width:10%;
+
+		}
+		#logo img{
+			margin: 15px 0;
+			width:100%;
+		}
+		#microciclo{
+			text-align: center;
+			font-size: 24px;
+			margin-bottom: 30px;
+			font-weight: bold;
+			text-transform: uppercase;
+			color: #C70500;
+			margin-top: 20px;
+
+		}
+
+/*ESTILOS VISTA GESTIONADMIN*/
+		#main{
+			width: 80%;
+			padding: 0 10%;
+		
+		}
+		#logo {
+			margin: 0 45%;
+		}
+		.mainWrap {
+			width: 100%;
+		}
+
+		.cuerpo-boxdia input{  
+		
+			border: 1px solid #ccc;
+			border-radius: 0;
+			-webkit-appearance: none;   
+			text-align: center;
+
+		}
+
+		#nsesiones, .nejercicios{
+			display: none;
+		}
+
+
+		.dia{
+			padding-bottom: 30px;
+			
+		}
+		.titulo-dia {
+			margin-bottom: 20px;
+			border-bottom: 2px solid rgb(225, 225, 225);
+		}
+		.titulo-dia .titulo{
+			width: 20%;
+			font-size: 16px;
+			padding: 8px;
+			background-color: rgb(225, 225, 225);
+			border: 0px;
+			border-left: 8px solid #C70500;
+			float: left;
+		}
+		.calendario-dia{
+			margin-bottom: 20px;
+		}
+
+		.cabecera-boxdia{
+			font-weight: bold;
+			text-transform: uppercase;
+			font-size: 16px;
+			text-align: center;
+		}
+		.cabecera-boxdia .nombre, .cabecera-boxdia .series, .cabecera-boxdia .cargas, .cabecera-boxdia .kilos, 
+		.cabecera-boxdia .repeticiones, .cabecera-boxdia .rpe, .cabecera-boxdia .descanso{
+			padding:10px 0;
+		}
+
+		.cuerpo-boxdia{
+			text-align: center;
+			color: #000;
+			font-size: 14px;
+			
+		}
+		.nombre, .series, .cargas, .kilos, .repeticiones, .rpe, .descanso{
+			padding: 3px 0;
+		}
+
+		.nombre{
+			width: 25%;
+			float: left;
+			background-color: rgba(234, 255, 63, 0.32);
+		}		
+		.series{
+
+			width: 8%;
+			float: left;
+		}
+		.cargas{
+			background-color: rgb(225, 225, 225);
+			width: 11%;
+			float: left;
+			}
+		.kilos{
+			width: 11%;
+			float: left;
+		}
+		.repeticiones{
+			background-color: rgb(225, 225, 225);
+			width: 15%;
+			float:left;
+		}
+
+		.rpe{
+			width: 10%;
+			float: left;
+		}
+		
+		.descanso{
+			background-color: rgb(225, 225, 225);
+			width: 20%;
+			float: left;
+		}
+				.cabecera-boxdia .nombre, .cabecera-boxdia .series, .cabecera-boxdia .cargas, .cabecera-boxdia .kilos, 
+		.cabecera-boxdia .repeticiones, .cabecera-boxdia .rpe, .cabecera-boxdia .descanso{
+			background-color: #000;
+			color:white;
+		}
+
+
+	/*ESTILO*/
+	.date, .calendario-dia{
+		display: none;
+	}
+
+	.box-fecha{
+		padding: 0% 37%;
+		width: 26%;
+		margin-bottom: 30px;
+	}
+	#fechaayer, #fechamañana{
+	cursor:pointer;
+	}
+
+	#fechaayer{
+		    width:0px;
+		    height:0px;
+		    border-bottom:25px solid transparent;  /* izquierda flecha */
+		    border-top:25px solid transparent; /* derecha flecha */
+		    border-right:25px solid #000; 
+		    font-size:0px;
+		    line-height:0px;
+	}
+	#fechamañana{
+		    width:0px;
+		    height:0px;
+		    border-bottom:25px solid transparent;  /* izquierda flecha */
+	    	border-top:25px solid transparent; /* derecha flecha */
+	    	border-left:25px solid #000; /* base flecha y color*/
+		    font-size:0px;
+		    line-height:0px;
+	}
+	#fechahoy{
+		width: 74%;
+		margin: 0 3%;
+		text-align: center;
+		border: 4px solid #C70500;
+	}
+	.datehoy, .separador{
+		width: auto;
+		padding: 12px 0;
+	}
+	#fechadia{
+		margin-left: 35%;
+	}
+	#descanso{
+		font-size: 32px;
+		text-align: center;
+		margin-top: 30px;
+	}
+
+	/* Smartphones (portrait and landscape) ----------- */  
+	@media only screen  
+	and (min-width : 320px)  
+	and (max-width : 480px) {  
+		#main{
+			padding: 0% 7%;
+			width: 86%;
+		}
+		.box-fecha {
+			padding: 0% 15%;
+			width: 70%;
+		}
+		#fechahoy {
+			width: 66%;
+		}
+		.datehoy{
+			width: 25%;
+		}
+		#fechadia{
+			width: 22%;
+			padding-left: 15%;
+		}
+		#fechames{
+			width: 22%;
+		}
+		#fechaanyo{
+			width: 22%;
+			padding-right: 15%;
+
+		}
+		.separador{
+			width: 1%;
+			padding: 12px 0;	
+		}
+		.dia {
+			padding-bottom: 10px;
+			border-bottom: 1px solid rgb(225, 225, 225);
+		}
+		.titulo-dia{
+			margin-bottom: 5px;
+		}
+		.titulo-dia .titulo {
+			width: 32%;
+			font-size: 12px;
+			border-bottom: 1px solid rgb(225, 225, 225);
+			padding: 2px 6px;
+		}
+		.cabecera-boxdia .nombre, .cabecera-boxdia .series, .cabecera-boxdia .cargas, .cabecera-boxdia .kilos, .cabecera-boxdia .repeticiones, .cabecera-boxdia .rpe, .cabecera-boxdia .descanso {
+			padding: 1px 0;
+			font-size: 7px;
+		}
+		.nombre, .series, .cargas, .kilos, .repeticiones, .rpe, .descanso {
+			padding: 0;
+			font-size: 7px;
+		}
+
+	}  
+	/* Smartphones (landscape) ----------- */  
+	@media only screen  
+	and (min-width : 321px)
+	and (max-width: 1224px) {  
+		
+		#main{
+			padding: 0% 7%;
+			width: 86%;
+		}
+		#logo {
+			margin: 0 43%;
+			width: 14%;
+		}
+		.box-fecha {
+			padding: 0% 15%;
+			width: 70%;
+		}
+		#fechahoy {
+			width: 66%;
+		}
+		.datehoy{
+			width: 25%;
+		}
+		#fechadia{
+			width: auto;
+			padding-left: 0;
+			margin-left: 25%;
+		}
+		#fechames{
+			width: auto;
+		}
+		#fechaanyo{
+			width: auto;
+			padding-right: 0;
+		}
+		.separador{
+			width: auto;
+			padding: 12px 2px;	
+		}
+		.dia {
+			padding-bottom: 10px;
+			border-bottom: 1px solid rgb(225, 225, 225);
+		}
+		.titulo-dia{
+			margin-bottom: 5px;
+		}
+		.titulo-dia .titulo {
+			width: 32%;
+			font-size: 12px;
+			border-bottom: 1px solid rgb(225, 225, 225);
+			padding: 2px 6px;
+		}
+		.cabecera-boxdia .nombre, .cabecera-boxdia .series, .cabecera-boxdia .cargas, .cabecera-boxdia .kilos, .cabecera-boxdia .repeticiones, .cabecera-boxdia .rpe, .cabecera-boxdia .descanso {
+			padding: 1px 0;
+			font-size: 7px;
+		}
+		.nombre, .series, .cargas, .kilos, .repeticiones, .rpe, .descanso {
+			padding: 0;
+			font-size: 7px;
+		}	
+	}  
+	/* Smartphones (portrait) ----------- */  
+	@media only screen  
+	and (max-width : 320px) {  
+
+		#main{
+			padding: 0% 7%;
+			width: 86%;
+		}
+		#logo {
+			margin: 0 43%;
+			width: 14%;
+		}
+		.box-fecha {
+			padding: 0% 15%;
+			width: 70%;
+		}
+		#fechahoy {
+			width: 63%;
+		}
+		.datehoy{
+			width: 25%;
+		}
+		#fechadia{
+			width: auto;
+			padding-left: 0;
+			margin-left: 15%;
+		}
+		#fechames{
+			width: auto;
+		}
+		#fechaanyo{
+			width: auto;
+
+		}
+		.separador{
+			width: auto;
+			padding: 12px 2px;	
+		}
+		.dia {
+			padding-bottom: 10px;
+			border-bottom: 1px solid rgb(225, 225, 225);
+
+		}
+		.titulo-dia{
+			margin-bottom: 5px;
+		}
+		.titulo-dia .titulo {
+			width: 32%;
+			font-size: 11px;
+			border-bottom: 1px solid rgb(225, 225, 225);
+			padding: 2px 6px;
+		}
+		.cabecera-boxdia .nombre, .cabecera-boxdia .series, .cabecera-boxdia .cargas, .cabecera-boxdia .kilos, .cabecera-boxdia .repeticiones, .cabecera-boxdia .rpe, .cabecera-boxdia .descanso {
+			padding: 1px 0;
+			font-size: 6px;
+		}
+		.nombre, .series, .cargas, .kilos, .repeticiones, .rpe, .descanso {
+			padding: 0;
+			font-size: 6px;
+		}
+
+		
+	}
+	@media only screen  
+	and (min-width : 481px)  
+	and (max-width : 767px) { 
+		.box-fecha{	
+			padding: 0% 25%;
+			width: 50%;
+		}
+		#fechahoy {
+			
+		}
+		#fechadia {
+			width: auto;
+			padding-left: 0;
+			margin-left: 20%;
+		}
+
+	}
+
+	/* iPads (portrait and landscape) ----------- */  
+	@media only screen  
+	and (min-width : 768px)  
+	and (max-width : 1024px) {  
+		.box-fecha{
+			padding: 0% 35%;
+			width: 30%;
+		}
+
+		
+	}  
+	/* iPads (landscape) ----------- */  
+	@media only screen  
+	and (min-width : 768px)  
+	and (max-width : 1224px)  
+	and (orientation : landscape) {  
+		.box-fecha{
+			padding: 0% 35%;
+			width: 30%;
+		}		 
+	}  
+	/* iPads (portrait) ----------- */  
+	@media only screen  
+	and (min-width : 768px)  
+	and (max-width : 1224px)  
+	and (orientation : portrait) {  
+		.box-fecha{
+			padding: 0% 33%;
+			width: 34%;
+		} 
+	}  
+	/* Desktops and laptops ----------- */  
+	@media only screen  
+	and (min-width : 1224px) {  
+		 
+	}  
+	/* Large screens ----------- */  
+	@media only screen  
+	and (min-width : 1824px) {  
+	/* Styles */  
+	}  
+	/* iPhone 4 ----------- */  
+	@media  
+	only screen and (-webkit-min-device-pixel-ratio : 1.5),  
+	only screen and (min-device-pixel-ratio : 1.5) {  
+	/* Styles */  
+} 
+
+	</style>
+
+	<script type="text/javascript">
+		
+		function controlDia(){
+				if(mes==1){
+					if(dia>31){
+						mes=mes+1;
+						dia=1;
+					}
+					else if(dia<1){
+						mes=12;
+						dia=31;
+						anyo=anyo-1;
+
+					}
+				}
+
+				else if(mes==2){
+					if(dia>28){
+						mes=mes+1;
+						dia=1;
+					}
+					else if(dia<1){
+						mes=mes-1;
+						dia=31;
+					}
+				}
+
+				else if(mes==3){
+					if(dia>31){
+						mes=mes+1;
+						dia=1;
+					}
+					else if(dia<1){
+						mes=mes-1;
+						dia=28;
+					}
+				}
+
+				else if(mes==4 || mes==6 || mes==9 || mes==11){
+					if(dia>30){
+						mes=mes+1;
+						dia=1;
+					}
+					else if(dia<1){
+						mes=mes-1;
+						dia=31;
+
+					}
+				}
+
+				else if(mes==5 || mes==7 || mes==10){
+					if(dia>31){
+						mes=mes+1;
+						dia=1;
+					}
+					else if(dia<1){
+						mes=mes-1;
+						dia=30;
+
+					}
+				}
+
+				else if(mes==8){
+					if(dia>31){
+						mes=mes+1;
+						dia=1;
+					}
+					else if(dia<1){
+						mes=mes-1;
+						dia=31;
+					}
+				}
+
+				else if(mes=12){
+					if(dia>31){
+						mes=1;
+						dia=1;
+						anyo=anyo+1;
+					}
+					else if(dia<1){
+						mes=mes-1;
+						dia=30;
+					}
+				}
+			}
+
+		function fechahoy(){
+
+			var fecha = new Date();
+			
+			var dia=fecha.getDate();
+			var mes=fecha.getMonth()+1;
+			var anyo = fecha.getFullYear();
+			
+
+			$("#fechahoy #fechadia").append(dia);
+			$("#fechahoy #fechames").append(mes);
+			$("#fechahoy #fechaanyo").append(anyo);
+	
+		
+		}
+
+		function fechaSiguiente(){
+			dia=parseInt($("#fechahoy #fechadia").text())+1;
+			mes=parseInt($("#fechahoy #fechames").text());
+			anyo=parseInt($("#fechahoy #fechaanyo").text());
+			controlDia();			
+
+			$("#fechamañana #diamañana").append(dia);
+			$("#fechamañana #mesmañana").append(mes);
+			$("#fechamañana #anyomañana").append(anyo);
+		
+		}
+
+		function fechaAnterior(){
+			dia=parseInt($("#fechahoy #fechadia").text())-1;
+			mes=parseInt($("#fechahoy #fechames").text());
+			anyo=parseInt($("#fechahoy #fechaanyo").text());
+			controlDia();
+
+			$("#fechaayer #diaayer").append(dia);
+			$("#fechaayer #mesayer").append(mes);
+			$("#fechaayer #anyoayer").append(anyo);
+
+
+		
+		}
+
+		function mostrarRutina(){
+
+			existesesion=0;
+
+			$(".dia").each(function(indice,valor) {
+				id=$(valor).attr("id");
+				diasesion=parseInt($("#"+id+" #dia").text());
+				messesion=parseInt($("#"+id+" #mes").text());
+				anyosesion=parseInt($("#"+id+" #anyo").text());
+
+
+				if(dia==diasesion && mes==messesion && anyo==anyosesion){
+					$("#"+id).css("display","block");
+					existesesion=1;
+
+				}
+				else{
+					$("#"+id).css("display","none");
+				}
+			});
+
+			if(existesesion==0){
+				$("#descanso").css("display","block");
+			}
+			else{
+				$("#descanso").css("display","none");
+			}
+		}
+		function muestraHoy(){
+			dia=parseInt($("#fechahoy #fechadia").text());
+			mes=parseInt($("#fechahoy #fechames").text());
+			anyo=parseInt($("#fechahoy #fechaanyo").text());
+
+			mostrarRutina();
+		}
+
+
+		function muestraMañana(){
+
+			$("#fechamañana").click(function(){
+				dia=parseInt($("#fechahoy #fechadia").text())+1;
+				mes=parseInt($("#fechahoy #fechames").text());
+				anyo=parseInt($("#fechahoy #fechaanyo").text());
+				controlDia();
+		
+				$("#fechaayer #diaayer").text("");
+				$("#fechaayer #mesayer").text("");
+				$("#fechaayer #anyoayer").text("");
+
+				$("#fechahoy #fechadia").text("");
+				$("#fechahoy #fechames").text("");
+				$("#fechahoy #fechaanyo").text("");
+
+				$("#fechamañana #diamañana").text("");
+				$("#fechamañana #mesmañana").text("");
+				$("#fechamañana #anyomañana").text("");
+
+				$("#fechahoy #fechadia").append(dia);
+				$("#fechahoy #fechames").append(mes);
+				$("#fechahoy #fechaanyo").append(anyo);
+
+				mostrarRutina();
+				fechaAnterior();
+				fechaSiguiente();
+
+
+		
+			});
+		
+		
+		}
+		function muestraAyer(){
+
+			$("#fechaayer").click(function(){
+				dia=parseInt($("#fechahoy #fechadia").text())-1;
+				mes=parseInt($("#fechahoy #fechames").text());
+				anyo=parseInt($("#fechahoy #fechaanyo").text());
+				controlDia();
+
+				$("#fechaayer #diaayer").text("");
+				$("#fechaayer #mesayer").text("");
+				$("#fechaayer #anyoayer").text("");
+
+				$("#fechahoy #fechadia").text("");
+				$("#fechahoy #fechames").text("");
+				$("#fechahoy #fechaanyo").text("");
+
+				$("#fechamañana #diamañana").text("");
+				$("#fechamañana #mesmañana").text("");
+				$("#fechamañana #anyomañana").text("");
+
+				$("#fechahoy #fechadia").append(dia);
+				$("#fechahoy #fechames").append(mes);
+				$("#fechahoy #fechaanyo").append(anyo);
+
+				mostrarRutina();
+				fechaAnterior();
+				fechaSiguiente();
+		
+			});
+		
+		
+		}
+
+		$(document).ready(function(){
+				fechahoy();
+				fechaAnterior();
+				fechaSiguiente();
+				muestraHoy();
+				muestraMañana();
+				muestraAyer();
+		});
+	</script>
+
+</head>
+<body>
+	<div id="wrap">
+
+		<div id="logo">
+
+		
+			<img src="http://www.fuerzanorte.com/wp-content/uploads/2016/01/LOGO_FONDO_TRANSPARENTE-e1454261603148.png">
+		</div>
+
+		<div id="main">
+	
+				<div id="microciclo">Micro5 Gonzale</div>
+				<div class="box-fecha">
+					<div id="fechaayer" class="fecha">
+						<div id="diaayer" class="date"></div>
+						<div id="mesayer" class="date"></div>
+						<div id="anyoayer" class="date"></div>
+						
+					</div>
+					<div id="fechahoy" class="fecha">
+						<div id="fechadia" class="datehoy"></div>
+						<div class="separador">-</div>
+						<div id="fechames" class="datehoy"></div>
+						<div class="separador">-</div>
+						<div id="fechaanyo" class="datehoy"></div>
+						
+					</div>
+					<div id="fechamañana" class="fecha">
+						<div id="diamañana" class="date"></div>
+						<div id="mesmañana" class="date"></div>
+						<div id="anyomañana" class="date"></div>
+						
+					</div>
+				</div>
+				
+				
+				
+			
+				<div id="anotaciones"></div>				<div id="boxDiasTrabajo">
+					
+
+					<div class='contenedor-boxdias'>
+
+													<div id='2083' class='dia'>
+
+
+
+								<div class="titulo-dia"><div class="titulo">Pierna </div></div>
+
+
+								<div class="calendario-dia">
+									<div id='dia' class='fecha'>25</div><div id='mes' class='fecha'>10</div><div id='anyo' class='fecha'>2021</div>						
+								</div>
+
+
+								<div class='cabecera-boxdia'>
+									<div class='nombre'>Ejercicio</div>
+									<div class='series'>Series</div>
+									<div class='cargas'>Cargas</div>
+									<div class='kilos'>Kilos</div>
+									<div class='repeticiones'>Repeticiones</div>
+									<div class='rpe'>RPE</div>
+									<div class='descanso'>Descanso</div>
+								
+								</div>
+								<div class="cuerpo-boxdia">
+																	<div class='ejercicio11873'> 
+										<div class="nombre">Sentadilla exc 3" + Pausa</div>
+										<div class="series">4</div>
+										<div class="cargas">0 %</div>
+										<div class="kilos">70 Kg</div>
+										<div class="repeticiones">6</div>
+										<div class="rpe">8</div>
+										<div class="descanso">3 min</div>
+										
+									</div>
+
+																		<div class='ejercicio11874'> 
+										<div class="nombre">Peso muerto + Pausa</div>
+										<div class="series">4</div>
+										<div class="cargas">0 %</div>
+										<div class="kilos">100 Kg</div>
+										<div class="repeticiones">6</div>
+										<div class="rpe">9</div>
+										<div class="descanso">3 min</div>
+										
+									</div>
+
+																		<div class='ejercicio11875'> 
+										<div class="nombre">Prensa de pierna</div>
+										<div class="series">4</div>
+										<div class="cargas">0 %</div>
+										<div class="kilos">100 Kg</div>
+										<div class="repeticiones">12</div>
+										<div class="rpe">8</div>
+										<div class="descanso">2 min</div>
+										
+									</div>
+
+																		<div class='ejercicio11876'> 
+										<div class="nombre">Ext cuadriceps unilateral</div>
+										<div class="series">4</div>
+										<div class="cargas">0 %</div>
+										<div class="kilos">25 Kg</div>
+										<div class="repeticiones">10</div>
+										<div class="rpe">9</div>
+										<div class="descanso">1 min</div>
+										
+									</div>
+
+																		<div class='ejercicio11877'> 
+										<div class="nombre">Rueda abd</div>
+										<div class="series">8</div>
+										<div class="cargas">0 %</div>
+										<div class="kilos">2 Kg</div>
+										<div class="repeticiones">12</div>
+										<div class="rpe">8</div>
+										<div class="descanso">1 min</div>
+										
+									</div>
+
+																		<div class='ejercicio11878'> 
+										<div class="nombre">Puente de gluteo 30"</div>
+										<div class="series">4</div>
+										<div class="cargas">0 %</div>
+										<div class="kilos">2 Kg</div>
+										<div class="repeticiones">1</div>
+										<div class="rpe">5</div>
+										<div class="descanso">1 min</div>
+										
+									</div>
+
+									
+							</div>
+							
+							</div>
+							
+														<div id='2084' class='dia'>
+
+
+
+								<div class="titulo-dia"><div class="titulo">TORSO</div></div>
+
+
+								<div class="calendario-dia">
+									<div id='dia' class='fecha'>26</div><div id='mes' class='fecha'>10</div><div id='anyo' class='fecha'>2021</div>						
+								</div>
+
+
+								<div class='cabecera-boxdia'>
+									<div class='nombre'>Ejercicio</div>
+									<div class='series'>Series</div>
+									<div class='cargas'>Cargas</div>
+									<div class='kilos'>Kilos</div>
+									<div class='repeticiones'>Repeticiones</div>
+									<div class='rpe'>RPE</div>
+									<div class='descanso'>Descanso</div>
+								
+								</div>
+								<div class="cuerpo-boxdia">
+																	<div class='ejercicio11879'> 
+										<div class="nombre">BP + PAUSA 2"</div>
+										<div class="series">3</div>
+										<div class="cargas">75 %</div>
+										<div class="kilos">75 Kg</div>
+										<div class="repeticiones">8</div>
+										<div class="rpe">9</div>
+										<div class="descanso">4 min</div>
+										
+									</div>
+
+																		<div class='ejercicio11880'> 
+										<div class="nombre">Press banca sin pausa (Explosivo)</div>
+										<div class="series">4</div>
+										<div class="cargas">60 %</div>
+										<div class="kilos">60 Kg</div>
+										<div class="repeticiones">10</div>
+										<div class="rpe">8</div>
+										<div class="descanso">2 min</div>
+										
+									</div>
+
+																		<div class='ejercicio11881'> 
+										<div class="nombre">Press plano mancuernas</div>
+										<div class="series">4</div>
+										<div class="cargas">70 %</div>
+										<div class="kilos">25 Kg</div>
+										<div class="repeticiones">12</div>
+										<div class="rpe">8</div>
+										<div class="descanso">1 min</div>
+										
+									</div>
+
+																		<div class='ejercicio11882'> 
+										<div class="nombre">Dominadas +20kg</div>
+										<div class="series">3</div>
+										<div class="cargas">85 %</div>
+										<div class="kilos">105 Kg</div>
+										<div class="repeticiones">3</div>
+										<div class="rpe">8</div>
+										<div class="descanso">3 min</div>
+										
+									</div>
+
+																		<div class='ejercicio11883'> 
+										<div class="nombre">Dominadas +10kg</div>
+										<div class="series">3</div>
+										<div class="cargas">75 %</div>
+										<div class="kilos">95 Kg</div>
+										<div class="repeticiones">8</div>
+										<div class="rpe">9</div>
+										<div class="descanso">2 min</div>
+										
+									</div>
+
+																		<div class='ejercicio11884'> 
+										<div class="nombre">Dominadas libres</div>
+										<div class="series">4</div>
+										<div class="cargas">70 %</div>
+										<div class="kilos">85 Kg</div>
+										<div class="repeticiones">8</div>
+										<div class="rpe">7</div>
+										<div class="descanso">2 min</div>
+										
+									</div>
+
+																		<div class='ejercicio11885'> 
+										<div class="nombre">Press francés</div>
+										<div class="series">6</div>
+										<div class="cargas">75 %</div>
+										<div class="kilos">25 Kg</div>
+										<div class="repeticiones">12</div>
+										<div class="rpe">8</div>
+										<div class="descanso">1 min</div>
+										
+									</div>
+
+									
+							</div>
+							
+							</div>
+							
+														<div id='2085' class='dia'>
+
+
+
+								<div class="titulo-dia"><div class="titulo">Pierna post</div></div>
+
+
+								<div class="calendario-dia">
+									<div id='dia' class='fecha'>28</div><div id='mes' class='fecha'>10</div><div id='anyo' class='fecha'>2021</div>						
+								</div>
+
+
+								<div class='cabecera-boxdia'>
+									<div class='nombre'>Ejercicio</div>
+									<div class='series'>Series</div>
+									<div class='cargas'>Cargas</div>
+									<div class='kilos'>Kilos</div>
+									<div class='repeticiones'>Repeticiones</div>
+									<div class='rpe'>RPE</div>
+									<div class='descanso'>Descanso</div>
+								
+								</div>
+								<div class="cuerpo-boxdia">
+																	<div class='ejercicio11886'> 
+										<div class="nombre">Peso muerto Sumo + exc 3"</div>
+										<div class="series">5</div>
+										<div class="cargas">0 %</div>
+										<div class="kilos">110 Kg</div>
+										<div class="repeticiones">5</div>
+										<div class="rpe">8</div>
+										<div class="descanso">3 min</div>
+										
+									</div>
+
+																		<div class='ejercicio11887'> 
+										<div class="nombre">Peso muerto rumano exc 3"</div>
+										<div class="series">5</div>
+										<div class="cargas">0 %</div>
+										<div class="kilos">60 Kg</div>
+										<div class="repeticiones">8</div>
+										<div class="rpe">8</div>
+										<div class="descanso">2 min</div>
+										
+									</div>
+
+																		<div class='ejercicio11888'> 
+										<div class="nombre">Hip thrust isométrico 2"</div>
+										<div class="series">5</div>
+										<div class="cargas">0 %</div>
+										<div class="kilos">120 Kg</div>
+										<div class="repeticiones">8</div>
+										<div class="rpe">8</div>
+										<div class="descanso">2 min</div>
+										
+									</div>
+
+																		<div class='ejercicio11889'> 
+										<div class="nombre">Extensiones lumbares</div>
+										<div class="series">5</div>
+										<div class="cargas">0 %</div>
+										<div class="kilos">2 Kg</div>
+										<div class="repeticiones">12</div>
+										<div class="rpe">5</div>
+										<div class="descanso">1 min</div>
+										
+									</div>
+
+																		<div class='ejercicio11890'> 
+										<div class="nombre">Plancha abd 1´</div>
+										<div class="series">5</div>
+										<div class="cargas">0 %</div>
+										<div class="kilos">5 Kg</div>
+										<div class="repeticiones">1</div>
+										<div class="rpe">10</div>
+										<div class="descanso">1 min</div>
+										
+									</div>
+
+									
+							</div>
+							
+							</div>
+							
+														<div id='2086' class='dia'>
+
+
+
+								<div class="titulo-dia"><div class="titulo">TORSO </div></div>
+
+
+								<div class="calendario-dia">
+									<div id='dia' class='fecha'>29</div><div id='mes' class='fecha'>10</div><div id='anyo' class='fecha'>2021</div>						
+								</div>
+
+
+								<div class='cabecera-boxdia'>
+									<div class='nombre'>Ejercicio</div>
+									<div class='series'>Series</div>
+									<div class='cargas'>Cargas</div>
+									<div class='kilos'>Kilos</div>
+									<div class='repeticiones'>Repeticiones</div>
+									<div class='rpe'>RPE</div>
+									<div class='descanso'>Descanso</div>
+								
+								</div>
+								<div class="cuerpo-boxdia">
+																	<div class='ejercicio11891'> 
+										<div class="nombre">Flexiones con lastre +20kg</div>
+										<div class="series">5</div>
+										<div class="cargas">80 %</div>
+										<div class="kilos">50 Kg</div>
+										<div class="repeticiones">10</div>
+										<div class="rpe">6</div>
+										<div class="descanso">2 min</div>
+										
+									</div>
+
+																		<div class='ejercicio11892'> 
+										<div class="nombre">Press declinado</div>
+										<div class="series">5</div>
+										<div class="cargas">60 %</div>
+										<div class="kilos">60 Kg</div>
+										<div class="repeticiones">10</div>
+										<div class="rpe">6</div>
+										<div class="descanso">2 min</div>
+										
+									</div>
+
+																		<div class='ejercicio11893'> 
+										<div class="nombre">Remo mancuerna</div>
+										<div class="series">5</div>
+										<div class="cargas">80 %</div>
+										<div class="kilos">30 Kg</div>
+										<div class="repeticiones">8</div>
+										<div class="rpe">8</div>
+										<div class="descanso">1 min</div>
+										
+									</div>
+
+																		<div class='ejercicio11894'> 
+										<div class="nombre">Remo con mancuernas en banco inclinado</div>
+										<div class="series">5</div>
+										<div class="cargas">70 %</div>
+										<div class="kilos">20 Kg</div>
+										<div class="repeticiones">8</div>
+										<div class="rpe">8</div>
+										<div class="descanso">1 min</div>
+										
+									</div>
+
+																		<div class='ejercicio11895'> 
+										<div class="nombre">Pájaro</div>
+										<div class="series">5</div>
+										<div class="cargas">80 %</div>
+										<div class="kilos">7 Kg</div>
+										<div class="repeticiones">12</div>
+										<div class="rpe">9</div>
+										<div class="descanso">1 min</div>
+										
+									</div>
+
+																		<div class='ejercicio11896'> 
+										<div class="nombre">Rot ext de hombro</div>
+										<div class="series">5</div>
+										<div class="cargas">70 %</div>
+										<div class="kilos">2 Kg</div>
+										<div class="repeticiones">12</div>
+										<div class="rpe">7</div>
+										<div class="descanso">1 min</div>
+										
+									</div>
+
+									
+							</div>
+							
+							</div>
+							
+							
+					</div>
+				<div id="descanso">DIA DE DESCANSO</div>
+				</div>
+
+			
+
+		</div>
+	</div>
+</body>
+<footer>
+</footer>
+
+
+</html>
