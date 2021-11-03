@@ -12,7 +12,7 @@ CREATE TABLE program (
 CREATE TABLE block (
     block_id INTEGER NOT NULL PRIMARY KEY,
     block_desc VARCHAR,
-    program_id INTEGER NOT NULL REFERENCES program
+    program_id INTEGER NOT NULL REFERENCES program ON DELETE CASCADE
 );
 
 CREATE TABLE workout (

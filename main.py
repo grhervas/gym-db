@@ -49,7 +49,7 @@ def get_data_from_html(file):
             for exercise in exercises:
                 exercise_dict = {}
                 for element in exercise.find_all("div"):
-                    exercise_dict[element.attrs['class'][0]] = element.text
+                    exercise_dict[element.attrs['class'][0]] = element.text.strip()
                 exercises_list.append(exercise_dict)
             session_dict["exercises"] = exercises_list
 
@@ -80,18 +80,24 @@ def curate_exercises_data(exercises: list, col_names: list):
     # Standard names (only if matching length, else keep originals)
     if len(df_exercises.columns) == len(col_names):
         df_exercises.columns = col_names
-    # Lowercase exercise names
+    # Lowercase exercise names ("Ejercicio")
     df_exercises.iloc[:, 0] = df_exercises.iloc[:, 0].str.lower()
     # Convert to numbers
+    # "Series"
     df_exercises.iloc[:, 1] = df_exercises.iloc[:, 1].str.extract(r"(\d+)").astype(int).values
+    # "Cargas"
     df_exercises.iloc[:, 2] = df_exercises.iloc[:, 2].str.extract(r"(\d+)").astype(float).values
+    # "Kilos"
     df_exercises.iloc[:, 3] = df_exercises.iloc[:, 3].str.extract(r"(\d+)").astype(float).values
+    # "Repeticiones"
     df_exercises.iloc[:, 4] = df_exercises.iloc[:, 4].str.extract(r"(\d+)").astype(int).values
+    # "RPE"
     df_exercises.iloc[:, 5] = df_exercises.iloc[:, 5].str.extract(r"(\d+)").astype(int).values
+    # "Descanso"
     df_exercises.iloc[:, 6] = df_exercises.iloc[:, 6].str.extract(r"(\d+)").astype(float).values
-    # In "Peso (kg)", "Cargas (%)" and "Descanso (min)" change 0 --> NULL
-    df_exercises.iloc[:, 1] = df_exercises.iloc[:, 2].replace(0, np.nan)
+    # In "Cargas (%)", "Kilos" and "Descanso (min)" change 0 --> NULL
     df_exercises.iloc[:, 2] = df_exercises.iloc[:, 2].replace(0.0, np.nan)
+    df_exercises.iloc[:, 3] = df_exercises.iloc[:, 3].replace(0, np.nan)
     df_exercises.iloc[:, 6] = df_exercises.iloc[:, 6].replace(0.0, np.nan)
 
     return df_exercises
@@ -376,8 +382,8 @@ def main():
     # Create excel for macrocycle recording
     generate_program_excel(session, MACRO_NAME, LOGS_DIR)
 
-    # # Load excel records into db
-    # load_log_data(session, LOGS_DIR + MACRO_NAME + ".xlsx")
+    # Load excel records into db
+    load_log_data(session, LOGS_DIR + MACRO_NAME + ".xlsx")
 
 
 if __name__ == "__main__":

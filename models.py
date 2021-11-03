@@ -32,7 +32,7 @@ class Program(Base):
     date_end = Column(Date)
     objective = Column(String)
 
-    blocks = relationship("Block", back_populates="program")
+    blocks = relationship("Block", cascade="all,delete", back_populates="program")
 
     def __repr__(self):
         return (f"<Program(id={self.program_id}," +
