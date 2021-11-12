@@ -4,7 +4,7 @@ from sqlalchemy.orm.exc import NoResultFound
 
 from pathlib import Path
 
-from models import (Program, Block, Workout, Workout_set, 
+from models import (Program, Block, Workout, Workout_set,
                     Exercise, Log_workout, Log_set)
 
 from openpyxl import load_workbook
@@ -55,7 +55,12 @@ def get_data_from_html(file):
 
             sessions_list.append(session_dict)
 
-        block_name = soup.find(id="microciclo").text.strip()
+        # # We have changed this in order to make it easier to manually modify Micro name
+        # block_name = soup.find(id="microciclo").text.strip()
+        if isinstance(file, Path):
+            block_name = file.stem.strip()
+        else:
+            block_name = Path(file).stem.strip()
         micro_dict = {block_name: sessions_list}
 
     return micro_dict
@@ -320,15 +325,15 @@ def load_log_data(session, log_file):
                 log_workout.duration_min = df_wod_header["Duración (min)"]
                 log_workout.intensity = df_wod_header["RPE general"]
                 log_workout.comment_workout = df_wod_header["Comentario general"]
-                # log_workout.date_reg =  
             # If not, insert the info
             else:
-                log_workout = Log_workout(workout_id=workout_id, 
+                log_workout = Log_workout(workout_id=workout_id,
                                           date_workout_done=df_wod_header["Fecha"],
                                           duration_min=df_wod_header["Duración (min)"],
                                           intensity=df_wod_header["RPE general"],
                                           comment_workout=df_wod_header["Comentario general"])
                 session.add(log_workout)
+                session.commit()
 
             # ... from body (log_set info)
             df_wod_exer = df_wod.loc[df_wod.iloc[:, 2:].notna().any(axis=1)]

@@ -32,7 +32,7 @@ class Program(Base):
     date_end = Column(Date)
     objective = Column(String)
 
-    blocks = relationship("Block", cascade="all,delete", back_populates="program")
+    blocks = relationship("Block", cascade="all, delete-orphan", back_populates="program")
 
     def __repr__(self):
         return (f"<Program(id={self.program_id}," +
@@ -51,7 +51,7 @@ class Block(Base):
                         nullable=False)
 
     program = relationship("Program", back_populates="blocks")
-    workouts = relationship("Workout", back_populates="block")
+    workouts = relationship("Workout", cascade="all, delete-orphan", back_populates="block")
 
     def __repr__(self):
         return (f"<Block(id={self.block_id}," +
@@ -75,8 +75,8 @@ class Workout(Base):
     day = Column(Integer, CheckConstraint("day > 0"))
 
     block = relationship("Block", back_populates="workouts")
-    workout_sets = relationship("Workout_set", back_populates="workout")
-    log_workout = relationship("Log_workout", back_populates="workout",
+    workout_sets = relationship("Workout_set", cascade="all, delete-orphan", back_populates="workout")
+    log_workout = relationship("Log_workout", cascade="all, delete-orphan", back_populates="workout",
                                uselist=False)
 
     def __repr__(self):
@@ -100,7 +100,7 @@ class Exercise(Base):
     # This is defined for the case of using Table() class
     # as association table for Exercises-Muscles
     muscles = relationship("Muscle", secondary=exercise_muscle,
-                           back_populates="exercises")
+                           cascade="all, delete", back_populates="exercises")
     # # If using Association Object
     # muscles = relationship("Exercise_muscle", back_populates="exercise")
 
@@ -130,8 +130,8 @@ class Muscle(Base):
     muscle_desc = Column(String, nullable=False)
     # This is defined for the case of using Table() class
     # as association table for Exercises-Muscles
-    exercises = relationship("Exercise", secondary=exercise_muscle,
-                             back_populates="muscles")
+    exercises = relationship("Exercise", secondary=exercise_muscle, 
+                             cascade="all, delete", back_populates="muscles")
     # # If using Association Object ()
     # exercises = relationship("Exercise_muscle", back_populates="muscle")
 
@@ -165,7 +165,7 @@ class Workout_set(Base):
                      CheckConstraint("0 <= max_rpe AND max_rpe <= 10"))
     rest_min = Column(Float, CheckConstraint("rest_min >= 0"))
 
-    log_set = relationship("Log_set", back_populates="workout_set",
+    log_set = relationship("Log_set", cascade="all, delete-orphan", back_populates="workout_set",
                            uselist=False)
     workout = relationship("Workout", back_populates="workout_sets")
     exercise = relationship("Exercise", back_populates="workout_sets")
@@ -198,7 +198,7 @@ class Log_workout(Base):
     date_reg = Column(Date, nullable=False,
                       server_default=now(), server_onupdate=now())
 
-    log_sets = relationship("Log_set", back_populates="log_workout")
+    log_sets = relationship("Log_set", cascade="all, delete-orphan", back_populates="log_workout")
     workout = relationship("Workout", back_populates="log_workout")
 
     def __repr__(self):

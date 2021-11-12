@@ -18,7 +18,7 @@ CREATE TABLE block (
 CREATE TABLE workout (
     workout_id INTEGER NOT NULL PRIMARY KEY,
     workout_desc VARCHAR,
-    block_id INTEGER NOT NULL REFERENCES block,
+    block_id INTEGER NOT NULL REFERENCES block ON DELETE CASCADE,
     date_workout DATE,
     week INTEGER CHECK (week > 0),
     day INTEGER CHECK (day > 0),
@@ -33,7 +33,7 @@ CREATE TABLE exercise (
 
 CREATE TABLE workout_set (
     workout_set_id INTEGER NOT NULL PRIMARY KEY,
-    workout_id INTEGER NOT NULL REFERENCES workout,
+    workout_id INTEGER NOT NULL REFERENCES workout ON DELETE CASCADE,
     exercise_id INTEGER NOT NULL REFERENCES exercise,
     set_id INTEGER NOT NULL CHECK (set_id > 0),
     no_reps INTEGER CHECK (no_reps >= 0),
@@ -50,7 +50,7 @@ CREATE TABLE workout_set (
 
 CREATE TABLE log_workout (
     log_workout_id INTEGER NOT NULL PRIMARY KEY,
-    workout_id INTEGER UNIQUE NOT NULL REFERENCES workout,
+    workout_id INTEGER UNIQUE NOT NULL REFERENCES workout ON DELETE CASCADE,
     date_workout_done DATE,
     duration_min REAL CHECK (duration_min > 0),
     intensity REAL CHECK (0 <= intensity AND intensity <= 10),
@@ -61,7 +61,7 @@ CREATE TABLE log_workout (
 
 CREATE TABLE log_set (
     log_set_id INTEGER NOT NULL PRIMARY KEY,
-    workout_set_id INTEGER UNIQUE NOT NULL REFERENCES workout_set,
+    workout_set_id INTEGER UNIQUE NOT NULL REFERENCES workout_set ON DELETE CASCADE,
     log_workout_id INTEGER NOT NULL REFERENCES log_workout,
     no_reps_done INTEGER CHECK (no_reps_done >= 0),
     weight_done REAL CHECK (weight_done >= 0),
@@ -86,6 +86,6 @@ CREATE TABLE muscle (
 
 CREATE TABLE exercise_muscle (
     exercise_muscle_id INTEGER NOT NULL PRIMARY KEY,
-    exercise_id INTEGER NOT NULL REFERENCES exercise,
-    muscle_id INTEGER NOT NULL REFERENCES muscle
+    exercise_id INTEGER NOT NULL REFERENCES exercise ON DELETE CASCADE,
+    muscle_id INTEGER NOT NULL REFERENCES muscle ON DELETE CASCADE
 );
