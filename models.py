@@ -2,7 +2,7 @@ from sqlalchemy import (Column, Integer, Float, Date, String,
                         ForeignKey, Table, UniqueConstraint, CheckConstraint)
 from sqlalchemy.orm import relationship
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.sql.functions import now
+from sqlalchemy.sql.functions import current_timestamp, now
 
 
 Base = declarative_base()
@@ -130,7 +130,7 @@ class Muscle(Base):
     muscle_desc = Column(String, nullable=False)
     # This is defined for the case of using Table() class
     # as association table for Exercises-Muscles
-    exercises = relationship("Exercise", secondary=exercise_muscle, 
+    exercises = relationship("Exercise", secondary=exercise_muscle,
                              cascade="all, delete", back_populates="muscles")
     # # If using Association Object ()
     # exercises = relationship("Exercise_muscle", back_populates="muscle")
@@ -195,7 +195,7 @@ class Log_workout(Base):
     intensity = Column(Float,
                        CheckConstraint("0 <= intensity AND intensity <= 10"))
     comment_workout = Column(String)
-    date_reg = Column(Date, nullable=False,
+    date_reg = Column(Date, nullable=False, onupdate=current_timestamp(),
                       server_default=now(), server_onupdate=now())
 
     log_sets = relationship("Log_set", cascade="all, delete-orphan", back_populates="log_workout")

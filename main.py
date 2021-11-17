@@ -2,16 +2,16 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.orm.exc import NoResultFound
 
-from pathlib import Path
-
 from models import (Program, Block, Workout, Workout_set,
                     Exercise, Log_workout, Log_set)
 
+from pathlib import Path
 from openpyxl import load_workbook
 import pandas as pd
 import numpy as np
 from bs4 import BeautifulSoup
 import re
+from datetime import datetime
 
 
 def get_data_from_html(file):
@@ -308,61 +308,64 @@ def load_log_data(session, log_file):
             df_wod_header = (df_wod.loc[df_wod.iloc[:, 2:].isna().all(axis=1)]
                                    .dropna(axis=1, how="all")
                                    .set_index(0).squeeze())
-            # Get workout_id from Block and Program names and the order of workout in excel file
-            workout_id = (session.query(Workout)
-                                 .join(Block).join(Program)
-                                 .filter(Block.block_desc == block_desc,
-                                         Program.program_desc == program_desc)
-                                 .order_by(Workout.workout_id)
-                                 .all()[i].workout_id)
+            # Check if it is even possible to have a record (past date condition)
+            if df_wod_header["Fecha"] <= datetime.today():
+                # Get workout_id from Block and Program names and the order of workout in excel file
+                workout_id = (session.query(Workout)
+                                     .join(Block).join(Program)
+                                     .filter(Block.block_desc == block_desc,
+                                             Program.program_desc == program_desc)
+                                     .order_by(Workout.workout_id)
+                                     .all()[i].workout_id)
 
-            # If log exists for workout_id, update the info
-            log_workout = (session.query(Log_workout)
-                                  .filter(Log_workout.workout_id == workout_id)
-                                  .one_or_none())
-            if log_workout:
-                log_workout.date_workout_done = df_wod_header["Fecha"]
-                log_workout.duration_min = df_wod_header["Duración (min)"]
-                log_workout.intensity = df_wod_header["RPE general"]
-                log_workout.comment_workout = df_wod_header["Comentario general"]
-            # If not, insert the info
-            else:
-                log_workout = Log_workout(workout_id=workout_id,
-                                          date_workout_done=df_wod_header["Fecha"],
-                                          duration_min=df_wod_header["Duración (min)"],
-                                          intensity=df_wod_header["RPE general"],
-                                          comment_workout=df_wod_header["Comentario general"])
-                session.add(log_workout)
-                session.commit()
+                # If log exists for workout_id, update the info
+                log_workout = (session.query(Log_workout)
+                                      .filter(Log_workout.workout_id == workout_id)
+                                      .one_or_none())
 
-            # ... from body (log_set info)
-            df_wod_exer = df_wod.loc[df_wod.iloc[:, 2:].notna().any(axis=1)]
-            df_wod_exer.columns = df_wod_exer.iloc[0]
-            df_wod_exer = df_wod_exer.iloc[1:]
-            df_exer_done = df_wod_exer.loc[df_wod_exer[["¿Hecho?", "RPE"]].notnull().any(axis=1)]
-
-            # Iterate through sets
-            for _, row in df_exer_done.iterrows():
-                # If log exists for wod_set_id, update info
-                log_set = (session.query(Log_set)
-                                  .filter(Log_set.workout_set_id == row["ID"])
-                                  .one_or_none())
-                if log_set:
-                    log_set.log_workout_id = log_workout.log_workout_id
-                    log_set.no_reps_done = row["Repeticiones"]
-                    log_set.weight_done = row["Peso (kg)"]
-                    log_set.rpe_done = row["RPE"]
-                    log_set.comment_set = row["Comentarios"]
-
-                # If not, insert info
+                if log_workout:
+                    log_workout.date_workout_done = df_wod_header["Fecha"]
+                    log_workout.duration_min = df_wod_header["Duración (min)"]
+                    log_workout.intensity = df_wod_header["RPE general"]
+                    log_workout.comment_workout = df_wod_header["Comentario general"]
+                # If not, insert the info
                 else:
-                    log_set = Log_set(workout_set_id=row["ID"],
-                                      log_workout_id=log_workout.log_workout_id,
-                                      no_reps_done=row["Repeticiones"],
-                                      weight_done=row["Peso (kg)"],
-                                      rpe_done=row["RPE"],
-                                      comment_set=row["Comentarios"])
-                    session.add(log_set)
+                    log_workout = Log_workout(workout_id=workout_id,
+                                              date_workout_done=df_wod_header["Fecha"],
+                                              duration_min=df_wod_header["Duración (min)"],
+                                              intensity=df_wod_header["RPE general"],
+                                              comment_workout=df_wod_header["Comentario general"])
+                    session.add(log_workout)
+                    # session.commit()
+
+                # ... from body (log_set info)
+                df_wod_exer = df_wod.loc[df_wod.iloc[:, 2:].notna().any(axis=1)]
+                df_wod_exer.columns = df_wod_exer.iloc[0]
+                df_wod_exer = df_wod_exer.iloc[1:]
+                df_exer_done = df_wod_exer.loc[df_wod_exer[["¿Hecho?", "RPE"]].notnull().any(axis=1)]
+
+                # Iterate through sets
+                for _, row in df_exer_done.iterrows():
+                    # If log exists for wod_set_id, update info
+                    log_set = (session.query(Log_set)
+                                      .filter(Log_set.workout_set_id == row["ID"])
+                                      .one_or_none())
+                    if log_set:
+                        log_set.log_workout_id = log_workout.log_workout_id
+                        log_set.no_reps_done = row["Repeticiones"]
+                        log_set.weight_done = row["Peso (kg)"]
+                        log_set.rpe_done = row["RPE"]
+                        log_set.comment_set = row["Comentarios"]
+
+                    # If not, insert info
+                    else:
+                        log_set = Log_set(workout_set_id=row["ID"],
+                                          log_workout_id=log_workout.log_workout_id,
+                                          no_reps_done=row["Repeticiones"],
+                                          weight_done=row["Peso (kg)"],
+                                          rpe_done=row["RPE"],
+                                          comment_set=row["Comentarios"])
+                        session.add(log_set)
 
     session.commit()
 
