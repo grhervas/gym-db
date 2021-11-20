@@ -11,7 +11,7 @@ import pandas as pd
 import numpy as np
 from bs4 import BeautifulSoup
 import re
-from datetime import datetime
+# from datetime import datetime
 
 
 def get_data_from_html(file):
@@ -309,7 +309,8 @@ def load_log_data(session, log_file):
                                    .dropna(axis=1, how="all")
                                    .set_index(0).squeeze())
             # Check if it is even possible to have a record (past date condition)
-            if df_wod_header["Fecha"] <= datetime.today():
+            # if df_wod_header["Fecha"] <= datetime.today():
+            if df_wod_header["RPE general"].notnull():
                 # Get workout_id from Block and Program names and the order of workout in excel file
                 workout_id = (session.query(Workout)
                                      .join(Block).join(Program)
