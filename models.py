@@ -195,7 +195,8 @@ class Log_workout(Base):
     intensity = Column(Float,
                        CheckConstraint("0 <= intensity AND intensity <= 10"))
     comment_workout = Column(String)
-    date_reg = Column(Date, nullable=False, onupdate=current_timestamp(),
+    date_reg = Column(Date, nullable=False,
+                      default=current_timestamp(), onupdate=current_timestamp(),
                       server_default=now(), server_onupdate=now())
 
     log_sets = relationship("Log_set", cascade="all, delete-orphan", back_populates="log_workout")
