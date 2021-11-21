@@ -1,4 +1,4 @@
-from app import db, ma
+from config import db, ma
 from datetime import datetime
 # from sqlalchemy import (Column, Integer, Float, Date, String,
 #                         ForeignKey, Table, UniqueConstraint, CheckConstraint)
@@ -13,14 +13,15 @@ from datetime import datetime
 # class Table()
 exercise_muscle = db.Table(
     "exercise_muscle",
-    db.metadata,
+    # db.metadata,
     # Base.metadata,
-    db.Column("exercise_muscle_id", db.Integer, primary_key=True),
+    # db.Column("exercise_muscle_id", db.Integer, primary_key=True),
     db.Column("exercise_id", db.Integer, db.ForeignKey("exercise.exercise_id")),
     db.Column("muscle_id", db.Integer, db.ForeignKey("muscle.muscle_id"))
 )
 
-# Do SQLAlchemy Table objects need and ModelSchema class equivalent??
+
+# Do SQLAlchemy Table objects need and SQLAlchemyAutoSchema class equivalent??
 
 
 class Program(db.Model):
@@ -49,12 +50,6 @@ class Program(db.Model):
                 f"objective={self.objective})>")
 
 
-class ProgramSchema(ma.ModelSchema):
-    class Meta:
-        model = Program
-        sqla_session = db.session
-
-
 class Block(db.Model):
     __tablename__ = "block"
 
@@ -70,12 +65,6 @@ class Block(db.Model):
         return (f"<Block(id={self.block_id}," +
                 f"desc={self.block_desc}," +
                 f"program={self.program.program_desc})>")
-
-
-class BlockSchema(ma.ModelSchema):
-    class Meta:
-        model = Block
-        sqla_session = db.session
 
 
 class Workout(db.Model):
@@ -94,8 +83,8 @@ class Workout(db.Model):
     day = db.Column(db.Integer, db.CheckConstraint("day > 0"))
 
     block = db.relationship("Block", back_populates="workouts")
-    workout_sets = db.relationship("Workout_set", cascade="all, delete-orphan", back_populates="workout")
-    log_workout = db.relationship("Log_workout", cascade="all, delete-orphan", back_populates="workout",
+    workout_sets = db.relationship("WorkoutSet", cascade="all, delete-orphan", back_populates="workout")
+    log_workout = db.relationship("LogWorkout", cascade="all, delete-orphan", back_populates="workout",
                                   uselist=False)
 
     def __repr__(self):
@@ -108,20 +97,14 @@ class Workout(db.Model):
                 f"day={self.day})>")
 
 
-class WorkoutSchema(ma.ModelSchema):
-    class Meta:
-        model = Workout
-        sqla_session = db.session
-
-
 class Exercise(db.Model):
     __tablename__ = "exercise"
 
     exercise_id = db.Column(db.Integer, primary_key=True)
     exercise_desc = db.Column(db.String, nullable=False)
 
-    historic_prs = db.relationship("Historic_pr", back_populates="exercise")
-    workout_sets = db.relationship("Workout_set", back_populates="exercise")
+    historic_prs = db.relationship("HistoricPR", back_populates="exercise")
+    workout_sets = db.relationship("WorkoutSet", back_populates="exercise")
     # This is defined for the case of using Table() class
     # as association table for Exercises-Muscles
     muscles = db.relationship("Muscle", secondary=exercise_muscle,
@@ -132,12 +115,6 @@ class Exercise(db.Model):
     def __repr__(self):
         return (f"<Exercise(id={self.exercise_id}," +
                 f"desc={self.exercise_desc})>")
-
-
-class ExerciseSchema(ma.ModelSchema):
-    class Meta:
-        model = Exercise
-        sqla_session = db.session
 
 
 # # Many-to-many association Exercises-Muscles via Association Object
@@ -171,12 +148,6 @@ class Muscle(db.Model):
                 f"desc={self.muscle_desc})>")
 
 
-class MuscleSchema(ma.ModelSchema):
-    class Meta:
-        model = Muscle
-        sqla_session = db.session
-
-
 class WorkoutSet(db.Model):
     __tablename__ = "workout_set"
     __table_args__ = (
@@ -202,13 +173,13 @@ class WorkoutSet(db.Model):
                         db.CheckConstraint("0 <= max_rpe AND max_rpe <= 10"))
     rest_min = db.Column(db.Float, db.CheckConstraint("rest_min >= 0"))
 
-    log_set = db.relationship("Log_set", cascade="all, delete-orphan", back_populates="workout_set",
+    log_set = db.relationship("LogSet", cascade="all, delete-orphan", back_populates="workout_set",
                               uselist=False)
     workout = db.relationship("Workout", back_populates="workout_sets")
     exercise = db.relationship("Exercise", back_populates="workout_sets")
 
     def __repr__(self):
-        return (f"<Workout_set(id={self.workout_set_id}," +
+        return (f"<WorkoutSet(id={self.workout_set_id}," +
                 f"program={self.workout.block.program.program_desc}," +
                 f"block={self.workout.block.block_desc}," +
                 f"date={self.workout.date_workout}," +
@@ -216,12 +187,6 @@ class WorkoutSet(db.Model):
                 f"day={self.workout.day}," +
                 f"exercise={self.exercise.exercise_desc}," +
                 f"set_id={self.set_id})>")
-
-
-class WorkoutSetSchema(ma.ModelSchema):
-    class Meta:
-        model = WorkoutSet
-        sqla_session = db.session
 
 
 class LogWorkout(db.Model):
@@ -239,10 +204,9 @@ class LogWorkout(db.Model):
                           db.CheckConstraint("0 <= intensity AND intensity <= 10"))
     comment_workout = db.Column(db.String)
     date_reg = db.Column(db.Date, nullable=False,
-                         default=datetime.utcnow, onupdate=datetime.utcnow,
-                         server_default=datetime.utcnow, server_onupdate=datetime.utcnow)
+                         default=datetime.utcnow, onupdate=datetime.utcnow)
 
-    log_sets = db.relationship("Log_set", cascade="all, delete-orphan", back_populates="log_workout")
+    log_sets = db.relationship("LogSet", cascade="all, delete-orphan", back_populates="log_workout")
     workout = db.relationship("Workout", back_populates="log_workout")
 
     def __repr__(self):
@@ -252,12 +216,6 @@ class LogWorkout(db.Model):
                 f"block={self.workout.block.block_desc}," +
                 f"week={self.workout.week}," +
                 f"day={self.workout.day})>")
-
-
-class LogWorkoutSchema(ma.ModelSchema):
-    class Meta:
-        model = LogWorkout
-        sqla_session = db.session
 
 
 class LogSet(db.Model):
@@ -274,11 +232,11 @@ class LogSet(db.Model):
                          db.CheckConstraint("0 <= rpe_done AND rpe_done <= 10"))
     comment_set = db.Column(db.String)
 
-    log_workout = db.relationship("Log_workout", back_populates="log_sets")
-    workout_set = db.relationship("Workout_set", back_populates="log_set")
+    log_workout = db.relationship("LogWorkout", back_populates="log_sets")
+    workout_set = db.relationship("WorkoutSet", back_populates="log_set")
 
     def __repr__(self):
-        return (f"<Log_set(id={self.log_set_id}," +
+        return (f"<LogSet(id={self.log_set_id}," +
                 f"date={self.log_workout.date_workout_done}," +
                 f"program={self.log_workout.workout.block.program.program_desc}," +
                 f"block={self.log_workout.workout.block.block_desc}," +
@@ -286,12 +244,6 @@ class LogSet(db.Model):
                 f"day={self.log_workout.workout.day}," +
                 f"exercise={self.workout_set.exercise.exercise_desc}," +
                 f"set_id={self.workout_set.set_id})>")
-
-
-class LogSetSchema(ma.ModelSchema):
-    class Meta:
-        model = LogSet
-        sqla_session = db.session
 
 
 class HistoricPR(db.Model):
@@ -309,20 +261,76 @@ class HistoricPR(db.Model):
     weight_pr = db.Column(db.Float, db.CheckConstraint("weight_pr > 0"),
                           nullable=False)
     date_reg = db.Column(db.Date, nullable=False,
-                         default=datetime.utcnow, onupdate=datetime.utcnow,
-                         server_default=datetime.utcnow, server_onupdate=datetime.utcnow)
+                         default=datetime.utcnow, onupdate=datetime.utcnow)
 
     exercise = db.relationship("Exercise", back_populates="historic_prs")
 
     def __repr__(self):
-        return (f"<Historic_pr(id={self.pr_id}," +
+        return (f"<HistoricPR(id={self.pr_id}," +
                 f"exercise={self.exercise.exercise_desc}," +
                 f"date={self.date_pr}," +
                 f"no_reps={self.no_reps_pr}," +
                 f"weight={self.weight_pr})>")
 
 
-class HistoricPRSchema(ma.ModelSchema):
+class ProgramSchema(ma.SQLAlchemyAutoSchema):
+    class Meta:
+        model = Program
+        # sqla_session = db.session
+        load_instance = True
+
+
+class BlockSchema(ma.SQLAlchemyAutoSchema):
+    class Meta:
+        model = Block
+        # sqla_session = db.session
+        load_instance = True
+
+
+class WorkoutSchema(ma.SQLAlchemyAutoSchema):
+    class Meta:
+        model = Workout
+        # sqla_session = db.session
+        load_instance = True
+
+
+class ExerciseSchema(ma.SQLAlchemyAutoSchema):
+    class Meta:
+        model = Exercise
+        # sqla_session = db.session
+        load_instance = True
+
+
+class MuscleSchema(ma.SQLAlchemyAutoSchema):
+    class Meta:
+        model = Muscle
+        # sqla_session = db.session
+        load_instance = True
+
+
+class WorkoutSetSchema(ma.SQLAlchemyAutoSchema):
+    class Meta:
+        model = WorkoutSet
+        # sqla_session = db.session
+        load_instance = True
+
+
+class LogWorkoutSchema(ma.SQLAlchemyAutoSchema):
+    class Meta:
+        model = LogWorkout
+        # sqla_session = db.session
+        load_instance = True
+
+
+class LogSetSchema(ma.SQLAlchemyAutoSchema):
+    class Meta:
+        model = LogSet
+        # sqla_session = db.session
+        load_instance = True
+
+
+class HistoricPRSchema(ma.SQLAlchemyAutoSchema):
     class Meta:
         model = HistoricPR
-        sqla_session = db.session
+        # sqla_session = db.session
+        load_instance = True
