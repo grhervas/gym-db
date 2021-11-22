@@ -310,7 +310,7 @@ def load_log_data(session, log_file):
                                    .set_index(0).squeeze())
             # Check if it is even possible to have a record (past date condition)
             # if df_wod_header["Fecha"] <= datetime.today():
-            if df_wod_header["RPE general"].notnull():
+            if df_wod_header[["RPE general"]].notnull().all():
                 # Get workout_id from Block and Program names and the order of workout in excel file
                 workout_id = (session.query(Workout)
                                      .join(Block).join(Program)

@@ -157,7 +157,7 @@ ns.controller = (function(m, v) {
 
     // Validate input
     function validate(program_desc, date_start, date_end) {
-        return program_desc !== "" && date_start < date_end;
+        return program_desc !== "";
     }
 
     // Create our event handlers
